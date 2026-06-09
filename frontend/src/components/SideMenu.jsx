@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Plus,
   Lock,
@@ -7,6 +8,7 @@ import {
   HelpCircle,
   Gem,
 } from "lucide-react";
+import Upload from "./Upload";
 
 const navItems = [
   { icon: <Lock size={18} />, label: "Personal Vault", active: true },
@@ -24,10 +26,10 @@ const menuItemClass = (active) =>
     active ? "bg-green text-white hover:bg-green-dark" : "text-slate-800 hover:bg-slate-200"
   }`;
 
-// onCreateFolder arriva da App.jsx — quando cliccato avvisa App
-// che deve aprire il modal in Folders.jsx
 export default function SideMenu({ onCreateFolder }) {
-  return (
+  const [uploadOpen, setUploadOpen] = useState(false);
+ return (
+  <>
     <aside className="flex min-h-screen w-60 flex-col justify-between border-r border-slate-300 bg-slate-100 px-3 py-4 text-slate-900">
       <div>
         <div className="mb-8">
@@ -39,14 +41,14 @@ export default function SideMenu({ onCreateFolder }) {
           </p>
         </div>
 
-        {/* Upload File: per ora senza onClick, verrà collegato quando
-            il backend e l'auth saranno pronti */}
-        <button className="mb-4 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-black text-sm font-semibold text-white transition hover:bg-neutral-600">
+        <button
+          onClick={() => setUploadOpen(true)}
+          className="mb-4 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-black text-sm font-semibold text-white transition hover:bg-neutral-600"
+        >
           <Plus size={18} strokeWidth={2.2} />
           Upload File
         </button>
 
-        {/* Create Folder: chiama onCreateFolder che apre il modal */}
         <button
           onClick={onCreateFolder}
           className="mb-9 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-black text-sm font-semibold text-white transition hover:bg-neutral-600"
@@ -89,5 +91,8 @@ export default function SideMenu({ onCreateFolder }) {
         </div>
       </div>
     </aside>
-  );
+
+    {uploadOpen && <Upload onClose={() => setUploadOpen(false)} />}
+  </>
+);
 }
