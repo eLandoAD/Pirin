@@ -26,7 +26,7 @@ function NavBar() {
             </button>
             <button
               onClick={() => setModal("signup")}
-              className="bg-[#0f766e] rounded-lg hover:bg-teal-600 cursor-pointer px-2 py-1 text-white"
+              className="bg-green rounded-lg hover:bg-green-dark cursor-pointer px-2 py-1 text-white"
             >
               Sign Up
             </button>
