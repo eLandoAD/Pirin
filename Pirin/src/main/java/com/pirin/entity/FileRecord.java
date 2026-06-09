@@ -1,7 +1,3 @@
-package com.pirin.entity;
-
-import jakarta.persistence.*;
-
 @Entity
 public class FileRecord {
 
@@ -11,19 +7,17 @@ public class FileRecord {
 
     private String filename;
 
-    private String path;
+    private String storagePath;
 
-    @Lob
     private String salt;
 
-    @Lob
     private String iv;
 
     public FileRecord() {}
 
-    public FileRecord(String filename, String path, String salt, String iv) {
+    public FileRecord(String filename, String storagePath, String salt, String iv) {
         this.filename = filename;
-        this.path = path;
+        this.storagePath = storagePath;
         this.salt = salt;
         this.iv = iv;
     }
@@ -33,8 +27,8 @@ public class FileRecord {
     public String getFilename() { return filename; }
     public void setFilename(String filename) { this.filename = filename; }
 
-    public String getPath() { return path; }
-    public void setPath(String path) { this.path = path; }
+    public String getStoragePath() { return storagePath; }
+    public void setStoragePath(String storagePath) { this.storagePath = storagePath; }
 
     public String getSalt() { return salt; }
     public void setSalt(String salt) { this.salt = salt; }
