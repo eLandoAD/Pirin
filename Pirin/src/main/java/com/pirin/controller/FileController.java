@@ -42,7 +42,7 @@ public class FileController {
 
         repository.save(record);
 
-        return ResponseEntity.ok("uploaded");
+        return ResponseEntity.ok(Map.of("id", record.getId(), "filename", record.getFilename()));
     }
 
     @GetMapping("/download/{id}")
@@ -53,5 +53,10 @@ public class FileController {
         byte[] data = storageService.loadFile(file.getPath());
 
         return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/files")
+    public ResponseEntity<List<FileRecord>> listFiles() {
+        return ResponseEntity.ok(repository.findAll());
     }
 }
