@@ -1,5 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
+body {
+  font-family: "Hanken Grotesk", sans-serif;
+}
 @theme {
   --color-primary-white: #f7f9fb;
   --color-primary-black: #031427;
@@ -7,7 +11,7 @@
   --color-secondary-white: #f2f4f6;
   --color-secondary-black: #0b1c30;
 
-  --color-green: #0f172a;
+  --color-green: #00A572;
   --color-black: #000000;
   --color-white: #ffffff;
 
