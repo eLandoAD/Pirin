@@ -6,7 +6,7 @@ function NavBar() {
                 <div>Notifiche?</div>
                 <div className="flex pr-4 gap-4">
                     <button className="bg-secondary-white rounded-lg hover:bg-slate-200 cursor-pointer px-2 py-1 border">Log In</button>
-                    <button className="bg-green rounded-lg hover:bg-[#048059] cursor-pointer px-2 py-1">Sign Up</button>
+                    <button className="bg-green rounded-lg hover:bg-green-dark cursor-pointer px-2 py-1">Sign Up</button>
                 </div>
             </div>
             
