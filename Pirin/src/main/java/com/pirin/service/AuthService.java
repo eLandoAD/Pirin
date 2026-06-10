@@ -66,11 +66,30 @@ public class AuthService {
             throw new RuntimeException("Email già registrata.");
         }
 
-        User user = new User();
-        user.setUsername(request.username());
-        user.setEmail(request.email());
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setEnabled(false);
+       User user = new User();
+
+user.setUsername(request.username());
+user.setEmail(request.email());
+
+user.setPasswordHash(
+        passwordEncoder.encode(
+                request.password()
+        )
+);
+
+user.setEncryptedDek(
+        request.encryptedDek()
+);
+
+user.setDekSalt(
+        request.dekSalt()
+);
+
+user.setDekIv(
+        request.dekIv()
+);
+
+user.setEnabled(false);
 
         userRepository.save(user);
 
