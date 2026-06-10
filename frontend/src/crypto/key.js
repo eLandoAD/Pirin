@@ -1,4 +1,5 @@
-export async function deriveKey(password, salt) {
+export async function deriveKEK(password, salt) {
+
   const enc = new TextEncoder();
 
   const keyMaterial = await crypto.subtle.importKey(
@@ -13,11 +14,14 @@ export async function deriveKey(password, salt) {
     {
       name: "PBKDF2",
       salt,
-      iterations: 100000,
+      iterations: 150000,
       hash: "SHA-256"
     },
     keyMaterial,
-    { name: "AES-GCM", length: 256 },
+    {
+      name: "AES-GCM",
+      length: 256
+    },
     false,
     ["encrypt", "decrypt"]
   );

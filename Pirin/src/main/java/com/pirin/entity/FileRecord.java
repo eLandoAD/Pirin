@@ -9,17 +9,21 @@ public class FileRecord {
 
     private String storagePath;
 
-    private String salt;
 
     private String iv;
 
+    private Long ownerId;
+    
+    private Long folderId;
+
     public FileRecord() {}
 
-    public FileRecord(String filename, String storagePath, String salt, String iv) {
+    public FileRecord(String filename, String storagePath, String iv) {
         this.filename = filename;
         this.storagePath = storagePath;
-        this.salt = salt;
         this.iv = iv;
+        this.ownerId = ownerId;
+        this.folderId = folderId;
     }
 
     public Long getId() { return id; }
@@ -30,9 +34,8 @@ public class FileRecord {
     public String getStoragePath() { return storagePath; }
     public void setStoragePath(String storagePath) { this.storagePath = storagePath; }
 
-    public String getSalt() { return salt; }
-    public void setSalt(String salt) { this.salt = salt; }
-
     public String getIv() { return iv; }
     public void setIv(String iv) { this.iv = iv; }
+
+
 }
