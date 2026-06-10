@@ -4,7 +4,7 @@ import Authentification from "./Authentification";
 import { Bell } from "lucide-react";
 
 
-function NavBar() {
+function NavBar({ onLoginSuccess }) {
   const [modal, setModal] = useState(null); // null | "login" | "signup"
 
   return (
@@ -35,7 +35,7 @@ function NavBar() {
       </nav>
 
       {modal && (
-        <Authentification initialView={modal} onClose={() => setModal(null)} />
+         <Authentification initialView={modal} onClose={() => setModal(null)} onLoginSuccess={onLoginSuccess} />
       )}
     </>
   );

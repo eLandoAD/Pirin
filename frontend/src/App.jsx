@@ -9,6 +9,11 @@ function App() {
   // Sta qui in App.jsx perché sia SideMenu che Folders devono accedervi.
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [user, setUser] = useState(null);
+
+  function handleLoginSuccess(data) {
+    setUser(data);
+  }
 
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("darkMode") === "true"
@@ -44,7 +49,7 @@ function App() {
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <NavBar />
+          <NavBar onLoginSuccess={handleLoginSuccess} />
           <main className="flex-1 overflow-y-auto border-t border-slate-300 p-8">
             <h1 className="mb-4 text-2xl font-bold">Vault Explorer</h1>
             <Folders
