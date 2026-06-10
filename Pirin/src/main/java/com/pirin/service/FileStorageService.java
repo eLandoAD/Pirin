@@ -30,4 +30,13 @@ public class FileStorageService {
     public byte[] loadFile(String path) throws IOException {
         return Files.readAllBytes(Paths.get(path));
     }
+
+    public void delete(String path) {
+    try {
+        Files.deleteIfExists(Paths.get(path));
+    } catch (IOException e) {
+        // log ma non bloccare
+        System.err.println("Errore eliminazione file: " + e.getMessage());
+    }
+}
 }

@@ -1,8 +1,5 @@
-// Tutte le chiamate al backend per le cartelle.
+const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api";
 
-const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev";
-
-// Recupera tutte le cartelle dal database
 export async function fetchFolders() {
   const res = await fetch(`${BASE_URL}/folders`);
   if (!res.ok) throw new Error("Errore nel recupero delle cartelle");

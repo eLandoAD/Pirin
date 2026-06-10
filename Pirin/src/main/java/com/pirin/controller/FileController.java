@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class FileController {
 
     private final FileStorageService storageService;
@@ -32,8 +32,7 @@ public class FileController {
             @RequestParam MultipartFile file,
             @RequestParam String salt,
             @RequestParam String iv,
-            Authentication authentication
-    ) throws IOException {
+            Authentication authentication) throws IOException {
 
         User user = (User) authentication.getPrincipal();
 
@@ -45,26 +44,23 @@ public class FileController {
                 path,
                 salt,
                 iv,
-                user
-        );
+                user);
         repository.save(record);
 
         return ResponseEntity.ok(Map.of(
                 "id", record.getId(),
-                "filename", record.getFilename()
-        ));
+                "filename", record.getFilename()));
     }
 
     @GetMapping("/download/{id}")
     public ResponseEntity<byte[]> download(
             @PathVariable Long id,
-            Authentication authentication
-    ) throws IOException {
+            Authentication authentication) throws IOException {
 
         User user = (User) authentication.getPrincipal();
         FileRecord file = repository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new RuntimeException("File non trovato."));
-        byte[] data = storageService.loadFile(file.getStorageStoragePath());
+        byte[] data = storageService.loadFile(file.getStoragePath());
         return ResponseEntity.ok(data);
     }
 
@@ -79,8 +75,7 @@ public class FileController {
     @PutMapping("/files/{id}/rename")
     public ResponseEntity<?> renameFile(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body
-    ) {
+            @RequestBody Map<String, String> body) {
         FileRecord file = repository.findById(id).orElseThrow();
         file.setFilename(body.get("filename"));
         repository.save(file);
@@ -90,8 +85,7 @@ public class FileController {
     @PutMapping("/files/{id}/move")
     public ResponseEntity<?> moveFile(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body
-    ) {
+            @RequestBody Map<String, String> body) {
         FileRecord file = repository.findById(id).orElseThrow();
         file.setFolderId(Long.parseLong(body.get("folderId")));
         repository.save(file);
@@ -106,14 +100,9 @@ public class FileController {
     @PostMapping("/files/{id}/change-password")
     public ResponseEntity<?> changePassword(
             @PathVariable Long id,
-            @RequestBody PasswordChangeRequest body
-    ) {
+            @RequestBody PasswordChangeRequest body) {
         FileRecord file = repository.findById(id).orElseThrow();
-        
-        // CORREZIONE: Usa il valore proveniente dal DTO. 
-        // Modifica 'getNewEncryptedDek()' con il nome esatto del metodo presente nella tua classe PasswordChangeRequest
-        file.setEncryptedDek(body.getNewEncryptedDek()); 
-        
+        //file.setEncryptedDek(body.getNewEncryptedDek());
         repository.save(file);
         return ResponseEntity.ok("password updated");
     }

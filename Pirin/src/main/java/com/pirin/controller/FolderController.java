@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/folders")
+@RequestMapping("/api/folders")
 public class FolderController {
     private final FolderRepository repository;
 
