@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -30,7 +31,6 @@ public class FileController {
     ) throws IOException {
 
         byte[] data = file.getBytes();
-
         String path = storageService.saveFile(data, file.getOriginalFilename() + ".enc");
 
         FileRecord record = new FileRecord(
@@ -47,11 +47,8 @@ public class FileController {
 
     @GetMapping("/download/{id}")
     public ResponseEntity<byte[]> download(@PathVariable Long id) throws IOException {
-
         FileRecord file = repository.findById(id).orElseThrow();
-
-        byte[] data = storageService.loadFile(file.getPath());
-
+        byte[] data = storageService.loadFile(file.getStoragePath()); // era getPath()
         return ResponseEntity.ok(data);
     }
 
