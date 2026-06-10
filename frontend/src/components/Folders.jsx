@@ -11,6 +11,8 @@ function Folders({ showModal, onCloseModal }) {
     deleteFolder,
     openFolder,
     navigateTo,
+    loading,
+    error,
   } = useFolders();
 
   const [newFolderName, setNewFolderName] = useState("");
@@ -47,6 +49,8 @@ function Folders({ showModal, onCloseModal }) {
 
   return (
     <div className="rounded-lg border-2 border-slate-300 bg-white p-4 w-full">
+      {loading && <p className="text-sm text-slate-400">Loading...</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <nav className="mb-4 flex items-center gap-1 text-sm text-slate-500">
         <button onClick={() => navigateTo(null)} className="hover:text-slate-800">
           Root
