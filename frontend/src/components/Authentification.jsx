@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { register, login, forgotPassword } from "../api/auth";
 
 function Input({ label, name, type = "text", value, onChange, hint }) {
   return (
@@ -7,21 +8,9 @@ function Input({ label, name, type = "text", value, onChange, hint }) {
         {label}
       </label>
       <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        required
-        style={{
-          borderRadius: "6px",
-          border: "1px solid #cbd5e1",
-          padding: "8px 12px",
-          fontSize: "13px",
-          outline: "none",
-          backgroundColor: "#f8fafc",
-          color: "#0f172a",
-        }}
+        id={name} name={name} type={type}
+        value={value} onChange={onChange} required
+        style={{ borderRadius: "6px", border: "1px solid #cbd5e1", padding: "8px 12px", fontSize: "13px", outline: "none", backgroundColor: "#f8fafc", color: "#0f172a" }}
         onFocus={e => e.target.style.borderColor = "#5eead4"}
         onBlur={e => e.target.style.borderColor = "#cbd5e1"}
       />
@@ -30,18 +19,28 @@ function Input({ label, name, type = "text", value, onChange, hint }) {
   );
 }
 
-function LoginView({ onSwitch, onClose }) {
+function LoginView({ onSwitch, onClose, onLoginSuccess }) {
   const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   function update(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setError("");
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // TODO: chiamata al backend
-    console.log("Login con:", form);
-    onClose();
+    setLoading(true);
+    try {
+      const data = await login(form.email, form.password);
+      onLoginSuccess(data); // passa i dati utente al padre
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -53,7 +52,6 @@ function LoginView({ onSwitch, onClose }) {
           Registrati
         </button>
       </p>
-
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         <Input label="Email" name="email" type="email" value={form.email} onChange={update} />
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -71,33 +69,38 @@ function LoginView({ onSwitch, onClose }) {
             onBlur={e => e.target.style.borderColor = "#cbd5e1"}
           />
         </div>
-
-        <button type="submit" style={{ marginTop: "4px", width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer" }}
-          onMouseEnter={e => e.target.style.backgroundColor = "#1e293b"}
-          onMouseLeave={e => e.target.style.backgroundColor = "#0f172a"}
-        >
-          Accedi
+        {error && <p style={{ borderRadius: "6px", backgroundColor: "#fef2f2", padding: "8px 12px", fontSize: "13px", color: "#dc2626", margin: 0 }}>{error}</p>}
+        <button type="submit" disabled={loading}
+          style={{ marginTop: "4px", width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
+          {loading ? "Accesso in corso..." : "Accedi"}
         </button>
       </form>
     </>
   );
 }
 
-function SignUpView({ onSwitch, onClose }) {
+function SignUpView({ onSwitch }) {
   const [form, setForm] = useState({ username: "", email: "", password: "", confirm: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   function update(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setError("");
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (form.password !== form.confirm) { setError("Le password non corrispondono."); return; }
-    // TODO: chiamata al backend
-    console.log("Registrazione con:", form);
-    onSwitch("verify");
+    setLoading(true);
+    try {
+      await register(form.username, form.email, form.password);
+      onSwitch("verify");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -109,20 +112,15 @@ function SignUpView({ onSwitch, onClose }) {
           Accedi
         </button>
       </p>
-
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         <Input label="Username" name="username" value={form.username} onChange={update} />
         <Input label="Email" name="email" type="email" value={form.email} onChange={update} />
         <Input label="Password" name="password" type="password" value={form.password} onChange={update} hint="Almeno 8 caratteri" />
         <Input label="Conferma password" name="confirm" type="password" value={form.confirm} onChange={update} />
-
         {error && <p style={{ borderRadius: "6px", backgroundColor: "#fef2f2", padding: "8px 12px", fontSize: "13px", color: "#dc2626", margin: 0 }}>{error}</p>}
-
-        <button type="submit" style={{ marginTop: "4px", width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer" }}
-          onMouseEnter={e => e.target.style.backgroundColor = "#1e293b"}
-          onMouseLeave={e => e.target.style.backgroundColor = "#0f172a"}
-        >
-          Crea account
+        <button type="submit" disabled={loading}
+          style={{ marginTop: "4px", width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
+          {loading ? "Registrazione in corso..." : "Crea account"}
         </button>
       </form>
     </>
@@ -148,12 +146,20 @@ function VerifyView({ onSwitch }) {
 function ForgotView({ onSwitch }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // TODO: chiamata al backend
-    console.log("Reset password per:", email);
-    setSent(true);
+    setLoading(true);
+    try {
+      await forgotPassword(email);
+      setSent(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (sent) {
@@ -174,13 +180,13 @@ function ForgotView({ onSwitch }) {
   return (
     <>
       <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>Reset password</h2>
-      <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#64748b" }}>
-        Inserisci la tua email e ti mandiamo un link.
-      </p>
+      <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#64748b" }}>Inserisci la tua email e ti mandiamo un link.</p>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         <Input label="Email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <button type="submit" style={{ width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer" }}>
-          Invia link
+        {error && <p style={{ borderRadius: "6px", backgroundColor: "#fef2f2", padding: "8px 12px", fontSize: "13px", color: "#dc2626", margin: 0 }}>{error}</p>}
+        <button type="submit" disabled={loading}
+          style={{ width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer" }}>
+          {loading ? "Invio in corso..." : "Invia link"}
         </button>
         <button type="button" onClick={() => onSwitch("login")} style={{ background: "none", border: "none", fontSize: "12px", color: "#94a3b8", cursor: "pointer" }}>
           Torna al login
@@ -190,40 +196,15 @@ function ForgotView({ onSwitch }) {
   );
 }
 
-export default function AuthModal({ initialView = "login", onClose }) {
+export default function AuthModal({ initialView = "login", onClose, onLoginSuccess }) {
   const [view, setView] = useState(initialView);
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 50,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        backgroundColor: "rgba(0,0,0,0.5)",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "relative",
-          width: "100%", maxWidth: "400px",
-          margin: "0 16px",
-          borderRadius: "12px",
-          border: "1px solid #e2e8f0",
-          backgroundColor: "white",
-          padding: "32px",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.2)",
-        }}
-      >
-
-        <button
-          onClick={onClose}
-          style={{ position: "absolute", right: "16px", top: "16px", background: "none", border: "none", fontSize: "16px", color: "#94a3b8", cursor: "pointer", lineHeight: 1 }}
-        >
-          ✕
-        </button>
-
-        {view === "login"  && <LoginView  onSwitch={setView} onClose={onClose} />}
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
+      <div onClick={(e) => e.stopPropagation()}
+        style={{ position: "relative", width: "100%", maxWidth: "400px", margin: "0 16px", borderRadius: "12px", border: "1px solid #e2e8f0", backgroundColor: "white", padding: "32px", boxShadow: "0 25px 60px rgba(0,0,0,0.2)" }}>
+        <button onClick={onClose} style={{ position: "absolute", right: "16px", top: "16px", background: "none", border: "none", fontSize: "16px", color: "#94a3b8", cursor: "pointer", lineHeight: 1 }}>✕</button>
+        {view === "login"  && <LoginView  onSwitch={setView} onClose={onClose} onLoginSuccess={onLoginSuccess} />}
         {view === "signup" && <SignUpView onSwitch={setView} onClose={onClose} />}
         {view === "verify" && <VerifyView onSwitch={setView} />}
         {view === "forgot" && <ForgotView onSwitch={setView} />}
