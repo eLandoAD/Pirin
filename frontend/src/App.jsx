@@ -1,24 +1,25 @@
 import { useState, useEffect } from "react";
 import NavBar from "./components/NavBar";
 import SideMenu from "./components/SideMenu";
-import Folders from './components/Folders';
-import SettingsModal from "./components/SettingsModal";
+import Folders from "./components/Folders";
 
 function App() {
-  // Questo stato controlla se il modal "Create Folder" è aperto o chiuso.
-  // Sta qui in App.jsx perché sia SideMenu che Folders devono accedervi.
-  const [showCreateFolder, setShowCreateFolder] = useState(false);
+  // Stati locali (Current)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Stati in arrivo da GitHub (Incoming)
+  const [showFolderModal, setShowFolderModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [user, setUser] = useState(null);
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("darkMode") === "true"
+  );
 
   function handleLoginSuccess(data) {
     setUser(data);
   }
 
-  const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem("darkMode") === "true"
-  );
-
+  // Gestione Dark Mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -41,35 +42,29 @@ function App() {
   }
 
   return (
-    <>
-      <div className="flex h-screen overflow-hidden">
-        <SideMenu
-          onCreateFolder={() => setShowCreateFolder(true)}
-          onOpenSettings={() => setShowSettings(true)}
+    <div className="flex h-screen overflow-hidden bg-white">
+      <SideMenu
+        onCreateFolder={() => setShowFolderModal(true)}
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Unisce l'apertura del menu e il login */}
+        <NavBar 
+          onMenuOpen={() => setMobileMenuOpen(true)} 
+          onLoginSuccess={handleLoginSuccess} 
         />
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <NavBar onLoginSuccess={handleLoginSuccess} />
-          <main className="flex-1 overflow-y-auto border-t border-slate-300 p-8">
-            <h1 className="mb-4 text-2xl font-bold">Vault Explorer</h1>
-            <Folders
-              showModal={showCreateFolder}
-              onCloseModal={() => setShowCreateFolder(false)}
-            />
-          </main>
-        </div>
-      </div>
-
-      {
-        showSettings && (
-          <SettingsModal
-            darkMode={darkMode}
-            onToggle={toggleDarkMode}
-            onClose={() => setShowSettings(false)}
+        
+        <main className="flex-1 overflow-y-auto border-t border-slate-300 p-4 md:p-8">
+          <h1 className="mb-4 text-2xl font-bold">Vault Explorer</h1>
+          <Folders
+            showModal={showFolderModal}
+            onCloseModal={() => setShowFolderModal(false)}
           />
-        )
-      }
-    </>
+        </main>
+      </div>
+    </div>
   );
 }
 

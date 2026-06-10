@@ -1,12 +1,13 @@
 import { useState } from "react";
+import { Bell, Menu, LogOut, User } from "lucide-react";
 import Authentification from "./Authentification";
-import { Bell, LogOut, User } from "lucide-react";
 import { logout, getToken } from "../api/auth";
 
-function NavBar({ onLoginSuccess }) {
+// Unisce le prop per il menu mobile (Current) e il successo del login (Incoming)
+function NavBar({ onMenuOpen, onLoginSuccess }) {
   const [modal, setModal] = useState(null);
 
-  // Legge i dati utente dal localStorage se già loggato
+  // Legge i dati utente dal localStorage se già loggato (Incoming)
   const [user, setUser] = useState(() => {
     const token = getToken();
     if (!token) return null;
@@ -31,15 +32,23 @@ function NavBar({ onLoginSuccess }) {
 
   return (
     <>
-      <nav className="bg-primary-white flex items-center p-4 px-6">
+      <nav className="bg-primary-white flex items-center p-4 px-6 gap-4">
+        {/* hamburger — solo mobile (Current) */}
+        <button
+          onClick={onMenuOpen}
+          className="md:hidden text-slate-600 hover:text-slate-900"
+        >
+          <Menu size={22} />
+        </button>
+
         <input
           type="text"
           placeholder="Search..."
-          className="bg-secondary-white w-[30%] p-1 pl-3 border rounded-lg border-slate-300 outline-none focus:border-teal-600"
+          className="w-full md:w-[30%] p-1 pl-3 border rounded-lg border-slate-300 outline-none focus:border-teal-600 bg-white text-sm"
         />
 
-        <div className="flex justify-end items-center gap-8 w-[70%]">
-          <Bell size={20} className="text-slate-600 cursor-pointer hover:text-green" />
+        <div className="flex items-center gap-4 ml-auto">
+          <Bell size={20} className="text-slate-600 cursor-pointer hover:text-teal-700 shrink-0" />
 
           {user ? (
             <div className="flex items-center gap-3 pr-4">
@@ -60,16 +69,16 @@ function NavBar({ onLoginSuccess }) {
               </button>
             </div>
           ) : (
-            <div className="flex pr-4 gap-4">
+            <div className="flex gap-2">
               <button
                 onClick={() => setModal("login")}
-                className="bg-secondary-white rounded-lg hover:bg-slate-200 cursor-pointer px-2 py-1 border"
+                className="rounded-lg hover:bg-slate-200 cursor-pointer px-3 py-1.5 border text-sm whitespace-nowrap"
               >
                 Log In
               </button>
               <button
                 onClick={() => setModal("signup")}
-                className="bg-green rounded-lg hover:bg-green-dark cursor-pointer px-2 py-1 text-white"
+                className="bg-[#0f766e] rounded-lg hover:bg-teal-600 cursor-pointer px-3 py-1.5 text-white text-sm whitespace-nowrap"
               >
                 Sign Up
               </button>
