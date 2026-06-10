@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavBar from "./components/NavBar";
 import SideMenu from "./components/SideMenu";
 import Folders from "./components/Folders";
