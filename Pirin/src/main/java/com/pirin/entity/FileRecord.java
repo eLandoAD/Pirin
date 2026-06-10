@@ -1,11 +1,6 @@
 package com.pirin.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 @Entity
 public class FileRecord {
@@ -15,12 +10,11 @@ public class FileRecord {
     private Long id;
 
     private String filename;
-
     private String storagePath;
-
     private String salt;
-
     private String iv;
+    private Long ownerId;
+    private Long folderId;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
@@ -86,4 +80,10 @@ public class FileRecord {
     public void setUser(User user) {
         this.user = user;
     }
+
+    public Long getOwnerId() { return ownerId; }
+    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
+
+    public Long getFolderId() { return folderId; }
+    public void setFolderId(Long folderId) { this.folderId = folderId; }
 }

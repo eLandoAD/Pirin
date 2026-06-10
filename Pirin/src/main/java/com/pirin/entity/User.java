@@ -23,6 +23,15 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = false;
 
+    // --- Encryption fields from main branch ---
+    @Column(columnDefinition = "TEXT")
+    private String encryptedDek;
+
+    private String dekSalt;
+
+    private String dekIv;
+    // -------------------------------------------
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -34,6 +43,7 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 
+    // --- Getters and Setters ---
     public Long getId() {
         return id;
     }
@@ -68,5 +78,37 @@ public class User {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public String getEncryptedDek() {
+        return encryptedDek;
+    }
+
+    public void setEncryptedDek(String encryptedDek) {
+        this.encryptedDek = encryptedDek;
+    }
+
+    public String getDekSalt() {
+        return dekSalt;
+    }
+
+    public void setDekSalt(String dekSalt) {
+        this.dekSalt = dekSalt;
+    }
+
+    public String getDekIv() {
+        return dekIv;
+    }
+
+    public void setDekIv(String dekIv) {
+        this.dekIv = dekIv;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
