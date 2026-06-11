@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { register, login, forgotPassword } from "../api/auth";
+import { createUserKeys } from "../crypto/dek";  
 
 function Input({ label, name, type = "text", value, onChange, hint }) {
   return (
@@ -34,7 +35,7 @@ function LoginView({ onSwitch, onClose, onLoginSuccess }) {
     setLoading(true);
     try {
       const data = await login(form.email, form.password);
-      onLoginSuccess(data); // passa i dati utente al padre
+      onLoginSuccess(data);
       onClose();
     } catch (err) {
       setError(err.message);
@@ -94,7 +95,8 @@ function SignUpView({ onSwitch }) {
     if (form.password !== form.confirm) { setError("Le password non corrispondono."); return; }
     setLoading(true);
     try {
-      await register(form.username, form.email, form.password);
+      const { encryptedDek, dekSalt, dekIv } = await createUserKeys(form.password);
+      await register(form.username, form.email, form.password, encryptedDek, dekSalt, dekIv);
       onSwitch("verify");
     } catch (err) {
       setError(err.message);

@@ -1,37 +1,57 @@
-import { deriveKey } from "./key";
+import { deriveKEK } from "../crypto/key";
+import { authHeader } from "./auth";
 
-export async function changePassword({
-  encryptedDek,
-  salt,
-  oldPassword,
-  newPassword
-}) {
+const BASE_URL = "/api";
 
-  // 1. KEK vecchia password
-  const oldKey = await deriveKey(oldPassword, salt);
+export async function changePassword({ oldPassword, newPassword }) {
+  const encryptedDekB64 = localStorage.getItem("encryptedDek");
+  const dekSaltB64      = localStorage.getItem("dekSalt");
+  const dekIvB64        = localStorage.getItem("dekIv");
 
-  // 2. decrypt DEK
+  if (!encryptedDekB64 || !dekSaltB64 || !dekIvB64) {
+    throw new Error("Dati DEK non trovati. Effettua il login.");
+  }
+
+  const encryptedDekBytes = Uint8Array.from(atob(encryptedDekB64), c => c.charCodeAt(0));
+  const dekSalt           = Uint8Array.from(atob(dekSaltB64),      c => c.charCodeAt(0));
+  const dekIv             = Uint8Array.from(atob(dekIvB64),        c => c.charCodeAt(0));
+
+  const oldKek    = await deriveKEK(oldPassword, dekSalt);
   const dekBuffer = await crypto.subtle.decrypt(
-    {
-      name: "AES-GCM",
-      iv: salt.slice(0, 12)
-    },
-    oldKey,
-    encryptedDek
+    { name: "AES-GCM", iv: dekIv },        
+    encryptedDekBytes
   );
 
-  // 3. KEK nuova password
-  const newKey = await deriveKey(newPassword, salt);
+  const newKek   = await deriveKEK(newPassword, dekSalt);
+  const newDekIv = crypto.getRandomValues(new Uint8Array(12));
 
-  // 4. re-encrypt DEK
-  const newEncryptedDek = await crypto.subtle.encrypt(
-    {
-      name: "AES-GCM",
-      iv: salt.slice(0, 12)
-    },
-    newKey,
+  const newEncryptedDekBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: newDekIv },
+    newKek,
     dekBuffer
   );
 
-  return newEncryptedDek;
+  const newEncryptedDekB64 = btoa(String.fromCharCode(...new Uint8Array(newEncryptedDekBuffer)));
+  const newDekIvB64        = btoa(String.fromCharCode(...newDekIv));
+
+  const res = await fetch(`${BASE_URL}/auth/change-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeader() },
+    body: JSON.stringify({
+      oldPassword,
+      newPassword,
+      newEncryptedDek: newEncryptedDekB64,
+      newDekIv:        newDekIvB64,
+    }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.message || "Cambio password fallito");
+  }
+
+  localStorage.setItem("encryptedDek", newEncryptedDekB64);
+  localStorage.setItem("dekIv",        newDekIvB64);
+
+  return true;
 }

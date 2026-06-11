@@ -1,39 +1,59 @@
-import { deriveKey } from "./key";
-import { encryptFileWithDek } from "./encrypt";
+import { deriveKEK } from "../crypto/key";
+import { authHeader } from "./auth";
+
+const BASE_URL = "/api";
 
 export async function uploadFile(file, password) {
-  // 1. genera salt per derivare KEK
-  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const encryptedDekB64 = localStorage.getItem("encryptedDek");
+  const dekSaltB64      = localStorage.getItem("dekSalt");
+  const dekIvB64        = localStorage.getItem("dekIv");
 
-  // 2. deriva KEK dalla password
-  const kek = await deriveKey(password, salt);
+  if (!encryptedDekB64 || !dekSaltB64 || !dekIvB64) {
+    throw new Error("Dati DEK non trovati. Effettua il login.");
+  }
 
-  // 3. genera DEK (chiave random per cifrare file)
-  const dek = crypto.getRandomValues(new Uint8Array(32));
+  const encryptedDekBytes = Uint8Array.from(atob(encryptedDekB64), c => c.charCodeAt(0));
+  const dekSalt           = Uint8Array.from(atob(dekSaltB64),      c => c.charCodeAt(0));
+  const dekIv             = Uint8Array.from(atob(dekIvB64),        c => c.charCodeAt(0));
 
-  // 4. cifra il file con DEK
-  const { encrypted, iv } = await encryptFileWithDek(file, dek);
+  const kek = await deriveKEK(password, dekSalt);
 
-  // 5. cifro il DEK con KEK (IMPORTANTISSIMO)
-  const encryptedDek = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: salt.subarray(0, 12) },
+  const dekBuffer = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: dekIv },
     kek,
-    dek
+    encryptedDekBytes
   );
 
-  // 6. invio al server
-  const formData = new FormData();
-  formData.append("file", new Blob([encrypted]));
-  formData.append("iv", new Blob([iv]));
-  formData.append("salt", new Blob([salt]));
-  formData.append("encryptedDek", new Blob([encryptedDek]));
+  const dek = await crypto.subtle.importKey(
+    "raw",
+    dekBuffer,
+    "AES-GCM",
+    false,
+    ["encrypt"]
+  );
 
-  return fetch("/upload", {
+  const fileIv = crypto.getRandomValues(new Uint8Array(12));
+
+  const fileBuffer    = await file.arrayBuffer();
+  const encryptedFile = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: fileIv },
+    dek,
+    fileBuffer
+  );
+
+  const fileIvB64 = btoa(String.fromCharCode(...fileIv));
+
+  const formData = new FormData();
+  formData.append("file", new Blob([encryptedFile]), file.name);
+  formData.append("iv",   fileIvB64);  
+  formData.append("salt", "user_dek");  
+
+  const res = await fetch(`${BASE_URL}/upload`, {
     method: "POST",
-    body: formData,
+    headers: { ...authHeader() },
     body: formData,
   });
 
-  const data = await res.json();
-  return data;
+  if (!res.ok) throw new Error("Upload fallito");
+  return res.json();
 }

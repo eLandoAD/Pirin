@@ -4,6 +4,7 @@ import com.pirin.dto.ForgotPasswordRequest;
 import com.pirin.dto.LoginRequest;
 import com.pirin.dto.LoginResponse;
 import com.pirin.dto.MessageResponse;
+import com.pirin.dto.PasswordChangeRequest;
 import com.pirin.dto.RegisterRequest;
 import com.pirin.dto.ResetPasswordRequest;
 import com.pirin.entity.EmailVerificationToken;
@@ -46,51 +47,25 @@ public class AuthService {
     }
 
     public MessageResponse register(RegisterRequest request) {
-        if (request.username() == null || request.username().isBlank()) {
+        if (request.username() == null || request.username().isBlank())
             throw new RuntimeException("Username obbligatorio.");
-        }
-
-        if (request.email() == null || request.email().isBlank()) {
+        if (request.email() == null || request.email().isBlank())
             throw new RuntimeException("Email obbligatoria.");
-        }
-
-        if (request.password() == null || request.password().length() < 8) {
+        if (request.password() == null || request.password().length() < 8)
             throw new RuntimeException("La password deve avere almeno 8 caratteri.");
-        }
-
-        if (userRepository.existsByUsername(request.username())) {
+        if (userRepository.existsByUsername(request.username()))
             throw new RuntimeException("Username già in uso.");
-        }
-
-        if (userRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.email()))
             throw new RuntimeException("Email già registrata.");
-        }
 
-       User user = new User();
-
-user.setUsername(request.username());
-user.setEmail(request.email());
-
-user.setPasswordHash(
-        passwordEncoder.encode(
-                request.password()
-        )
-);
-
-user.setEncryptedDek(
-        request.encryptedDek()
-);
-
-user.setDekSalt(
-        request.dekSalt()
-);
-
-user.setDekIv(
-        request.dekIv()
-);
-
-user.setEnabled(false);
-
+        User user = new User();
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setEncryptedDek(request.encryptedDek());
+        user.setDekSalt(request.dekSalt());
+        user.setDekIv(request.dekIv());
+        user.setEnabled(false);
         userRepository.save(user);
 
         EmailVerificationToken token = new EmailVerificationToken();
@@ -108,19 +83,14 @@ user.setEnabled(false);
     public MessageResponse verifyEmail(String tokenValue) {
         EmailVerificationToken token = emailTokenRepository.findByToken(tokenValue)
                 .orElseThrow(() -> new RuntimeException("Token non valido."));
-
-        if (token.getUsedAt() != null) {
+        if (token.getUsedAt() != null)
             throw new RuntimeException("Token già usato.");
-        }
-
-        if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (token.getExpiresAt().isBefore(LocalDateTime.now()))
             throw new RuntimeException("Token scaduto.");
-        }
 
         User user = token.getUser();
         user.setEnabled(true);
         userRepository.save(user);
-
         token.setUsedAt(LocalDateTime.now());
         emailTokenRepository.save(token);
 
@@ -130,18 +100,21 @@ user.setEnabled(false);
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new RuntimeException("Credenziali non valide."));
-
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        if (!passwordEncoder.matches(request.password(), user.getPasswordHash()))
             throw new RuntimeException("Credenziali non valide.");
-        }
-
-        if (!user.isEnabled()) {
+        if (!user.isEnabled())
             throw new RuntimeException("Devi verificare la tua email prima di accedere.");
-        }
 
         String jwt = jwtService.generateToken(user);
 
-        return new LoginResponse(jwt, user.getUsername(), user.getEmail());
+        return new LoginResponse(
+                jwt,
+                user.getUsername(),
+                user.getEmail(),
+                user.getEncryptedDek(), 
+                user.getDekSalt(),      
+                user.getDekIv()        
+        );
     }
 
     public MessageResponse logout() {
@@ -159,33 +132,45 @@ user.setEnabled(false);
             String resetLink = frontendUrl + "/reset-password?token=" + token.getToken();
             System.out.println("LINK RESET PASSWORD: " + resetLink);
         });
-
         return new MessageResponse("Se l'email è registrata, riceverai un link per il reset.");
     }
 
     public MessageResponse resetPassword(ResetPasswordRequest request) {
         PasswordResetToken token = resetTokenRepository.findByToken(request.token())
                 .orElseThrow(() -> new RuntimeException("Token non valido."));
-
-        if (token.getUsedAt() != null) {
+        if (token.getUsedAt() != null)
             throw new RuntimeException("Token già usato.");
-        }
-
-        if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (token.getExpiresAt().isBefore(LocalDateTime.now()))
             throw new RuntimeException("Token scaduto.");
-        }
-
-        if (request.newPassword() == null || request.newPassword().length() < 8) {
+        if (request.newPassword() == null || request.newPassword().length() < 8)
             throw new RuntimeException("La password deve avere almeno 8 caratteri.");
-        }
 
         User user = token.getUser();
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
-
         token.setUsedAt(LocalDateTime.now());
         resetTokenRepository.save(token);
 
+        return new MessageResponse("Password aggiornata. Nota: i file cifrati precedentemente non sono più accessibili.");
+    }
+
+    public MessageResponse changePassword(User currentUser, PasswordChangeRequest request) {
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("Utente non trovato."));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash()))
+            throw new RuntimeException("Password attuale non corretta.");
+        if (request.getNewPassword() == null || request.getNewPassword().length() < 8)
+            throw new RuntimeException("La nuova password deve avere almeno 8 caratteri.");
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+
+        if (request.getNewEncryptedDek() != null && !request.getNewEncryptedDek().isBlank())
+            user.setEncryptedDek(request.getNewEncryptedDek());
+        if (request.getNewDekIv() != null && !request.getNewDekIv().isBlank())
+            user.setDekIv(request.getNewDekIv());
+
+        userRepository.save(user);
         return new MessageResponse("Password aggiornata con successo.");
     }
 }
