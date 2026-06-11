@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Folder, ChevronRight, Trash2, Pencil, File, Download } from "lucide-react";
+import { Folder, ChevronRight, Trash2, Pencil, File, Download, LayoutGrid, List } from "lucide-react";
 import { useFolders } from "../hooks/useFolders";
 import { fetchFiles, renameFileApi, deleteFileApi } from "../api/files";
 import { downloadAndDecrypt } from "../api/download";
@@ -17,6 +17,7 @@ function Folders({ showModal, onCloseModal }) {
     error,
   } = useFolders();
 
+  const [viewMode, setViewMode]               = useState("list");
   const [newFolderName, setNewFolderName]   = useState("");
   const [renamingId, setRenamingId]         = useState(null);
   const [renameValue, setRenameValue]       = useState("");
@@ -105,19 +106,38 @@ function Folders({ showModal, onCloseModal }) {
       {loading && <p className="text-sm text-slate-400">Loading...</p>}
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <nav className="mb-4 flex items-center gap-1 text-sm text-slate-500">
-        <button onClick={() => navigateTo(null)} className="hover:text-slate-800">
-          Root
-        </button>
-        {breadcrumb.map((folder) => (
-          <span key={folder.id} className="flex items-center gap-1">
-            <ChevronRight size={14} />
-            <button onClick={() => navigateTo(folder.id)} className="hover:text-slate-800">
-              {folder.name}
-            </button>
-          </span>
-        ))}
-      </nav>
+      <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-2">
+        <nav className="flex items-center gap-1 text-sm text-slate-500">
+          <button onClick={() => navigateTo(null)} className="hover:text-slate-800">
+            Root
+          </button>
+          {breadcrumb.map((folder) => (
+            <span key={folder.id} className="flex items-center gap-1">
+              <ChevronRight size={14} />
+              <button onClick={() => navigateTo(folder.id)} className="hover:text-slate-800">
+                {folder.name}
+              </button>
+            </span>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-md">
+          <button 
+            onClick={() => setViewMode("list")} 
+            className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            title="Visualizza come lista"
+          >
+            <List size={16} />
+          </button>
+          <button 
+            onClick={() => setViewMode("grid")} 
+            className={`p-1.5 rounded-md transition-colors ${viewMode === "grid" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            title="Visualizza come griglia"
+          >
+            <LayoutGrid size={16} />
+          </button>
+        </div>
+      </div>
 
       <section>
         <h3 className="mb-3 text-sm font-semibold text-slate-700">Folders</h3>
@@ -128,9 +148,9 @@ function Folders({ showModal, onCloseModal }) {
             <p className="text-xs mt-1">Click "Create Folder" to get started</p>
           </div>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" : "flex flex-col gap-2"}>
             {currentFolders.map((folder) => (
-              <li key={folder.id} className="flex items-center justify-between rounded-md px-3 py-2 hover:bg-slate-50">
+              <li key={folder.id} className={`group flex justify-between rounded-md px-3 py-2 hover:bg-slate-50 border border-transparent ${viewMode === "grid" ? "flex-col items-start gap-3 border-slate-200" : "items-center"}`}>
                 {renamingId === folder.id ? (
                   <input
                     autoFocus
@@ -141,15 +161,15 @@ function Folders({ showModal, onCloseModal }) {
                       if (e.key === "Escape") setRenamingId(null);
                     }}
                     onBlur={() => commitRename(folder.id)}
-                    className="rounded border border-slate-300 px-2 py-0.5 text-sm"
+                    className="rounded border border-slate-300 px-2 py-0.5 text-sm w-full"
                   />
                 ) : (
-                  <button onClick={() => openFolder(folder.id)} className="flex items-center gap-2 text-sm font-medium text-slate-800">
-                    <Folder size={16} className="text-teal-600" />
-                    {folder.name}
+                  <button onClick={() => openFolder(folder.id)} className={`flex gap-2 text-sm font-medium text-slate-800 text-left truncate w-full ${viewMode === "grid" ? "flex-col items-start" : "items-center"}`}>
+                    <Folder size={viewMode === "grid" ? 24 : 16} className="text-teal-600 shrink-0" />
+                    <span className="truncate w-full">{folder.name}</span>
                   </button>
                 )}
-                <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 ${viewMode === "grid" ? "w-full justify-end opacity-0 group-hover:opacity-100 transition-opacity" : ""}`}>
                   <button onClick={() => startRename(folder)} className="text-slate-400 hover:text-slate-700" title="Rename">
                     <Pencil size={14} />
                   </button>
@@ -175,11 +195,11 @@ function Folders({ showModal, onCloseModal }) {
             <p className="text-sm font-medium">No files outside folders</p>
           </div>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" : "flex flex-col gap-2"}>
             {files.map((file) => (
-              <li key={file.id} className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                <div className="flex items-center gap-2">
-                  <File size={16} className="text-slate-500" />
+              <li key={file.id} className={`group flex justify-between rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 border border-transparent ${viewMode === "grid" ? "flex-col items-start gap-3 bg-slate-50/50 border-slate-200" : "items-center"}`}>
+                <div className={`flex gap-2 min-w-0 w-full ${viewMode === "grid" ? "flex-col items-start" : "items-center"}`}>
+                  <File size={viewMode === "grid" ? 24 : 16} className="text-slate-500 shrink-0" />
                   {renamingFileId === file.id ? (
                     <input
                       autoFocus
@@ -190,14 +210,14 @@ function Folders({ showModal, onCloseModal }) {
                         if (e.key === "Escape") setRenamingFileId(null);
                       }}
                       onBlur={() => commitRenameFile(file.id)}
-                      className="rounded border border-slate-300 px-2 py-0.5 text-sm"
+                      className="rounded border border-slate-300 px-2 py-0.5 text-sm w-full"
                     />
                   ) : (
-                    <span>{file.filename}</span>
+                    <span className="truncate w-full font-medium">{file.filename}</span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handleDownload(file)} className="text-slate-400 hover:text-teal-600" title="Download">
+                <div className={`flex items-center gap-2 ${viewMode === "grid" ? "w-full justify-end opacity-0 group-hover:opacity-100 transition-opacity" : ""}`}>
+                  <button onClick={() => handleDownload(file)} className="text-slate-400 hover:text-green" title="Download">
                     <Download size={14} />
                   </button>
                   <button onClick={() => { setRenamingFileId(file.id); setRenameFileValue(file.filename); }} className="text-slate-400 hover:text-slate-700" title="Rename">

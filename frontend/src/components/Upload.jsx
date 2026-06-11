@@ -37,7 +37,7 @@ export default function UploadModal({ onClose }) {
   }
 
   async function handleUpload() {
-    const password = prompt("Inserisci la tua password per cifrare i file:");
+    const password = prompt("Enter your password to encrypt your files:");
     if (!password) return;
 
     setUploading(true);
@@ -48,7 +48,7 @@ export default function UploadModal({ onClose }) {
       }
       onClose();
     } catch (err) {
-      setUploadError(err.message || "Errore durante l'upload.");
+      setUploadError(err.message || "Error while uploading.");
     } finally {
       setUploading(false);
     }
@@ -59,20 +59,20 @@ export default function UploadModal({ onClose }) {
   return (
     <div
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)" }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ position: "relative", width: "100%", maxWidth: "480px", margin: "0 16px", borderRadius: "12px", border: "1px solid #e2e8f0", backgroundColor: "white", padding: "32px", boxShadow: "0 25px 60px rgba(0,0,0,0.2)" }}
+        className="relative w-full max-w-120 mx-4 rounded-xl border border-slate-200 bg-white p-8 shadow-[0_25px_60px_rgba(0,0,0,0.2)]"
       >
-        <button onClick={onClose} style={{ position: "absolute", right: "16px", top: "16px", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}>
+        <button onClick={onClose} className="absolute right-4 top-4 bg-transparent border-none cursor-pointer text-slate-400">
           <X size={18} />
         </button>
 
-        <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>Carica file</h2>
-        <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#64748b" }}>Scegli il tipo di file da caricare</p>
+        <h2 className="m-0 mb-1 text-[20px] font-bold text-slate-900">Upload files</h2>
+        <p className="m-0 mb-6 text-[13px] text-slate-500">Choose the file type to upload</p>
 
-        <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
+        <div className="flex gap-2 mb-6 flex-wrap">
           {FILE_TYPES.map((t, i) => {
             const Icon = t.icon;
             const active = selected === i;
@@ -80,7 +80,11 @@ export default function UploadModal({ onClose }) {
               <button
                 key={i}
                 onClick={() => { setSelected(i); setFiles([]); setUploadError(""); }}
-                style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "6px", fontSize: "12px", fontWeight: 500, cursor: "pointer", transition: "all 0.15s", backgroundColor: active ? "#0f172a" : "#f1f5f9", color: active ? "white" : "#475569", border: active ? "1px solid #0f172a" : "1px solid #e2e8f0" }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium cursor-pointer transition-all ${
+                  active 
+                    ? "bg-slate-900 text-white border border-slate-900" 
+                    : "bg-slate-100 text-slate-500 border border-slate-200"
+                }`}
               >
                 <Icon size={14} />
                 {t.label}
@@ -96,24 +100,26 @@ export default function UploadModal({ onClose }) {
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
               onClick={() => inputRef.current.click()}
-              style={{ border: `2px dashed ${dragging ? "#5eead4" : "#cbd5e1"}`, borderRadius: "8px", padding: "32px", textAlign: "center", cursor: "pointer", backgroundColor: dragging ? "#f0fdfa" : "#f8fafc", transition: "all 0.15s", marginBottom: "16px" }}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all mb-4 ${
+                dragging ? "border-green bg-teal-50/50" : "border-slate-300 bg-slate-50"
+              }`}
             >
-              <Upload size={28} style={{ margin: "0 auto 8px", color: "#94a3b8" }} />
-              <p style={{ margin: "0 0 4px", fontSize: "13px", fontWeight: 500, color: "#475569" }}>
-                Trascina i file qui oppure <span style={{ color: "#0f766e", fontWeight: 600 }}>sfoglia</span>
+              <Upload size={28} className="mx-auto mb-2 text-slate-400" />
+              <p className="m-0 mb-1 text-[13px] font-medium text-slate-500">
+                Drag files here or <span className="text-green-dark font-semibold">browse</span>
               </p>
-              <p style={{ margin: 0, fontSize: "11px", color: "#94a3b8" }}>
+              <p className="m-0 text-[11px] text-slate-500">
                 {FILE_TYPES[selected].accept === "*" ? "Tutti i formati supportati" : FILE_TYPES[selected].accept}
               </p>
-              <input ref={inputRef} type="file" multiple accept={accept} onChange={handlePick} style={{ display: "none" }} />
+              <input ref={inputRef} type="file" multiple accept={accept} onChange={handlePick} className="hidden" />
             </div>
 
             {files.length > 0 && (
-              <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              <div className="mb-4 flex flex-col gap-1.5">
                 {files.map((f, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#f1f5f9", fontSize: "12px", color: "#334155" }}>
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "340px" }}>{f.name}</span>
-                    <button onClick={() => removeFile(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", marginLeft: "8px", padding: 0 }}>
+                  <div key={i} className="flex items-center justify-between px-3 py-2 rounded-md bg-slate-100 text-[12px] text-slate-700">
+                    <span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-85">{f.name}</span>
+                    <button onClick={() => removeFile(i)} className="bg-transparent border-none cursor-pointer text-slate-500 ml-2 p-0">
                       <X size={14} />
                     </button>
                   </div>
@@ -122,7 +128,7 @@ export default function UploadModal({ onClose }) {
             )}
 
             {uploadError && (
-              <p style={{ borderRadius: "6px", backgroundColor: "#fef2f2", padding: "8px 12px", fontSize: "13px", color: "#dc2626", marginBottom: "12px" }}>
+              <p className="rounded-md bg-red-50 p-3 text-[13px] text-red-600 mb-3">
                 {uploadError}
               </p>
             )}
@@ -130,9 +136,13 @@ export default function UploadModal({ onClose }) {
             <button
               onClick={handleUpload}
               disabled={files.length === 0 || uploading}
-              style={{ width: "100%", borderRadius: "6px", backgroundColor: (files.length === 0 || uploading) ? "#e2e8f0" : "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: (files.length === 0 || uploading) ? "#94a3b8" : "white", cursor: (files.length === 0 || uploading) ? "not-allowed" : "pointer" }}
+              className={`w-full rounded-md border-none p-2.5 text-[13px] font-semibold transition-colors ${
+                (files.length === 0 || uploading) 
+                  ? "bg-slate-200 text-slate-400 cursor-not-allowed" 
+                  : "bg-slate-900 text-white cursor-pointer"
+              }`}
             >
-              {uploading ? "Cifratura e upload in corso..." : `Carica ${files.length > 0 ? `${files.length} file` : ""}`}
+              {uploading ? "Encrypting and uploading..." : `Carica ${files.length > 0 ? `${files.length} file` : ""}`}
             </button>
           </>
         )}

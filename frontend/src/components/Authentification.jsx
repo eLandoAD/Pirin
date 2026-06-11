@@ -30,7 +30,6 @@ function LoginView({ onSwitch, onClose, onLoginSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    loading(true);
     setLoading(true);
     try {
       const data = await login(form.email, form.password);
@@ -45,11 +44,11 @@ function LoginView({ onSwitch, onClose, onLoginSuccess }) {
 
   return (
     <>
-      <h2 className="m-0 mb-1 text-[20px] font-bold text-slate-900">Bentornato</h2>
+      <h2 className="m-0 mb-1 text-[20px] font-bold text-slate-900">Welcome back!</h2>
       <p className="m-0 mb-6 text-[13px] text-slate-500">
-        Non hai un account?{" "}
+        You don't have an account?{" "}
         <button onClick={() => onSwitch("signup")} className="bg-transparent border-none text-green-dark cursor-pointer text-[13px] p-0 font-semibold">
-          Registrati
+          Sign Up
         </button>
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -58,7 +57,7 @@ function LoginView({ onSwitch, onClose, onLoginSuccess }) {
           <div className="flex justify-between items-center">
             <label htmlFor="password" className="text-[13px] font-medium text-slate-800">Password</label>
             <button type="button" onClick={() => onSwitch("forgot")} className="bg-transparent border-none text-[11px] text-slate-400 cursor-pointer p-0">
-              Password dimenticata?
+              Password forgotten?
             </button>
           </div>
           <input
@@ -70,7 +69,7 @@ function LoginView({ onSwitch, onClose, onLoginSuccess }) {
         {error && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-600 m-0">{error}</p>}
         <button type="submit" disabled={loading}
           className={`mt-1 w-full rounded-md bg-slate-900 border-none p-2.5 text-[13px] font-semibold text-white cursor-pointer ${loading ? 'opacity-70' : 'opacity-100'}`}>
-          {loading ? "Accesso in corso..." : "Accedi"}
+          {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
     </>
@@ -89,7 +88,7 @@ function SignUpView({ onSwitch }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (form.password !== form.confirm) { setError("Le password non corrispondono."); return; }
+    if (form.password !== form.confirm) { setError("The passwords do not match."); return; }
     setLoading(true);
     try {
       const { encryptedDek, dekSalt, dekIv } = await createUserKeys(form.password);
@@ -106,20 +105,20 @@ function SignUpView({ onSwitch }) {
     <>
       <h2 className="m-0 mb-1 text-[20px] font-bold text-slate-900">Crea account</h2>
       <p className="m-0 mb-6 text-[13px] text-slate-500">
-        Hai già un account?{" "}
+        You already have an account?{" "}
         <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-green-dark cursor-pointer text-[13px] p-0 font-semibold">
-          Accedi
+          Log In
         </button>
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="Username" name="username" value={form.username} onChange={update} />
         <Input label="Email" name="email" type="email" value={form.email} onChange={update} />
-        <Input label="Password" name="password" type="password" value={form.password} onChange={update} hint="Almeno 8 caratteri" />
-        <Input label="Conferma password" name="confirm" type="password" value={form.confirm} onChange={update} />
+        <Input label="Password" name="password" type="password" value={form.password} onChange={update} hint="At least 8 characters" />
+        <Input label="Confirm password" name="confirm" type="password" value={form.confirm} onChange={update} />
         {error && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-600 m-0">{error}</p>}
         <button type="submit" disabled={loading}
           className={`mt-1 w-full rounded-md bg-slate-900 border-none p-2.5 text-[13px] font-semibold text-white cursor-pointer ${loading ? 'opacity-70' : 'opacity-100'}`}>
-          {loading ? "Registrazione in corso..." : "Crea account"}
+          {loading ? "Registration in progress..." : "Create account"}
         </button>
       </form>
     </>
@@ -130,13 +129,13 @@ function VerifyView({ onSwitch }) {
   return (
     <div className="text-center py-4">
       <div className="text-[40px] mb-4">✉️</div>
-      <h2 className="m-0 mb-2 text-[18px] font-semibold text-slate-900">Controlla la tua email</h2>
+      <h2 className="m-0 mb-2 text-[18px] font-semibold text-slate-900">Check your email</h2>
       <p className="text-[13px] text-slate-500 mb-6">
-        Ti abbiamo inviato un link di verifica.<br />
-        Clicca il link per attivare il tuo account.
+        We've sent you a verification link.<br />
+        Click the link to activate your account.
       </p>
       <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-[13px] text-teal-700 cursor-pointer font-semibold">
-        Torna al login
+        Return to login
       </button>
     </div>
   );
@@ -165,12 +164,12 @@ function ForgotView({ onSwitch }) {
     return (
       <div className="text-center py-4">
         <div className="text-[40px] mb-4">📬</div>
-        <h2 className="m-0 mb-2 text-[18px] font-semibold text-slate-900">Link inviato</h2>
+        <h2 className="m-0 mb-2 text-[18px] font-semibold text-slate-900">Link sent</h2>
         <p className="text-[13px] text-slate-500 mb-6">
-          Se l'email è registrata, riceverai un link per il reset.
+          If your email address is registered, you will receive a reset link.
         </p>
         <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-[13px] text-teal-700 cursor-pointer font-semibold">
-          Torna al login
+          Return to login
         </button>
       </div>
     );
@@ -179,16 +178,16 @@ function ForgotView({ onSwitch }) {
   return (
     <>
       <h2 className="m-0 mb-1 text-[20px] font-bold text-slate-900">Reset password</h2>
-      <p className="m-0 mb-6 text-[13px] text-slate-500">Inserisci la tua email e ti mandiamo un link.</p>
+      <p className="m-0 mb-6 text-[13px] text-slate-500">Enter your email and we'll send you a link.</p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="Email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         {error && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-600 m-0">{error}</p>}
         <button type="submit" disabled={loading}
           className="w-full rounded-md bg-slate-900 border-none p-2.5 text-[13px] font-semibold text-white cursor-pointer">
-          {loading ? "Invio in corso..." : "Invia link"}
+          {loading ? "Sending..." : "Send link"}
         </button>
         <button type="button" onClick={() => onSwitch("login")} className="bg-transparent border-none text-[12px] text-slate-400 cursor-pointer">
-          Torna al login
+          Return to login
         </button>
       </form>
     </>
