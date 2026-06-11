@@ -45,8 +45,8 @@ export async function uploadFile(file, password) {
 
   const formData = new FormData();
   formData.append("file", new Blob([encryptedFile]), file.name);
-  formData.append("iv",   fileIvB64);  
-  formData.append("salt", "user_dek");  
+  formData.append("iv",   fileIvB64);
+  formData.append("salt", dekSaltB64);
 
   const res = await fetch(`${BASE_URL}/upload`, {
     method: "POST",

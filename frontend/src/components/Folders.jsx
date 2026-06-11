@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Folder, ChevronRight, Trash2, Pencil, File } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Folder, ChevronRight, Trash2, Pencil, File, Download } from "lucide-react";
 import { useFolders } from "../hooks/useFolders";
+import { fetchFiles, renameFileApi, deleteFileApi } from "../api/files";
+import { downloadAndDecrypt } from "../api/download";
 
 function Folders({ showModal, onCloseModal }) {
   const {
@@ -15,16 +17,67 @@ function Folders({ showModal, onCloseModal }) {
     error,
   } = useFolders();
 
-  const [newFolderName, setNewFolderName] = useState("");
-  const [renamingId, setRenamingId] = useState(null);
-  const [renameValue, setRenameValue] = useState("");
+  const [newFolderName, setNewFolderName]   = useState("");
+  const [renamingId, setRenamingId]         = useState(null);
+  const [renameValue, setRenameValue]       = useState("");
+  const [files, setFiles]                   = useState([]);
+  const [filesLoading, setFilesLoading]     = useState(false);
+  const [filesError, setFilesError]         = useState("");
+  const [renamingFileId, setRenamingFileId] = useState(null);
+  const [renameFileValue, setRenameFileValue] = useState("");
 
-  // Dati finti solo per grafica, poi arriveranno dal database
-  const filesWithoutFolder = [
-    { id: 1, name: "documento.pdf" },
-    { id: 2, name: "immagine.png" },
-    { id: 3, name: "contratto.docx" },
-  ];
+  useEffect(() => {
+    loadFiles();
+  }, []);
+
+  async function loadFiles() {
+    setFilesLoading(true);
+    setFilesError("");
+    try {
+      const data = await fetchFiles();
+      setFiles(data);
+    } catch (e) {
+      setFilesError("Errore nel caricamento dei file.");
+    } finally {
+      setFilesLoading(false);
+    }
+  }
+
+  async function handleDownload(file) {
+    const password = prompt("Inserisci la tua password per decifrare il file:");
+    if (!password) return;
+    try {
+      const blob = await downloadAndDecrypt(file.id, password, { iv: file.fileIv });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = file.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Errore nel download: " + e.message);
+    }
+  }
+
+  async function handleDeleteFile(id) {
+    try {
+      await deleteFileApi(id);
+      setFiles((prev) => prev.filter((f) => f.id !== id));
+    } catch (e) {
+      alert("Errore nell'eliminazione: " + e.message);
+    }
+  }
+
+  async function commitRenameFile(id) {
+    try {
+      await renameFileApi(id, renameFileValue);
+      setFiles((prev) => prev.map((f) => f.id === id ? { ...f, filename: renameFileValue } : f));
+    } catch (e) {
+      alert("Errore nella rinomina: " + e.message);
+    } finally {
+      setRenamingFileId(null);
+    }
+  }
 
   function handleCreateFolder() {
     createFolder(newFolderName);
@@ -51,18 +104,15 @@ function Folders({ showModal, onCloseModal }) {
     <div className="rounded-lg border-2 border-slate-300 bg-primary-white p-4 w-full">
       {loading && <p className="text-sm text-slate-400">Loading...</p>}
       {error && <p className="text-sm text-red-500">{error}</p>}
+
       <nav className="mb-4 flex items-center gap-1 text-sm text-slate-500">
         <button onClick={() => navigateTo(null)} className="hover:text-slate-800">
           Root
         </button>
-
         {breadcrumb.map((folder) => (
           <span key={folder.id} className="flex items-center gap-1">
             <ChevronRight size={14} />
-            <button
-              onClick={() => navigateTo(folder.id)}
-              className="hover:text-slate-800"
-            >
+            <button onClick={() => navigateTo(folder.id)} className="hover:text-slate-800">
               {folder.name}
             </button>
           </span>
@@ -70,10 +120,7 @@ function Folders({ showModal, onCloseModal }) {
       </nav>
 
       <section>
-        <h3 className="mb-3 text-sm font-semibold text-slate-700">
-          Folders
-        </h3>
-
+        <h3 className="mb-3 text-sm font-semibold text-slate-700">Folders</h3>
         {currentFolders.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-slate-200 py-8 text-slate-400">
             <Folder size={40} strokeWidth={1.2} className="mb-3" />
@@ -83,10 +130,7 @@ function Folders({ showModal, onCloseModal }) {
         ) : (
           <ul className="flex flex-col gap-2">
             {currentFolders.map((folder) => (
-              <li
-                key={folder.id}
-                className="flex items-center justify-between rounded-md px-3 py-2 hover:bg-slate-50"
-              >
+              <li key={folder.id} className="flex items-center justify-between rounded-md px-3 py-2 hover:bg-slate-50">
                 {renamingId === folder.id ? (
                   <input
                     autoFocus
@@ -100,29 +144,16 @@ function Folders({ showModal, onCloseModal }) {
                     className="rounded border border-slate-300 px-2 py-0.5 text-sm"
                   />
                 ) : (
-                  <button
-                    onClick={() => openFolder(folder.id)}
-                    className="flex items-center gap-2 text-sm font-medium text-slate-800"
-                  >
+                  <button onClick={() => openFolder(folder.id)} className="flex items-center gap-2 text-sm font-medium text-slate-800">
                     <Folder size={16} className="text-teal-600" />
                     {folder.name}
                   </button>
                 )}
-
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => startRename(folder)}
-                    className="text-slate-400 hover:text-slate-700"
-                    title="Rename"
-                  >
+                  <button onClick={() => startRename(folder)} className="text-slate-400 hover:text-slate-700" title="Rename">
                     <Pencil size={14} />
                   </button>
-
-                  <button
-                    onClick={() => deleteFolder(folder.id)}
-                    className="text-slate-400 hover:text-red-500"
-                    title="Delete"
-                  >
+                  <button onClick={() => deleteFolder(folder.id)} className="text-slate-400 hover:text-red-500" title="Delete">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -133,24 +164,49 @@ function Folders({ showModal, onCloseModal }) {
       </section>
 
       <section className="mt-6 border-t border-slate-200 pt-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-700">
-          Files
-        </h3>
+        <h3 className="mb-3 text-sm font-semibold text-slate-700">Files</h3>
 
-        {filesWithoutFolder.length === 0 ? (
+        {filesLoading && <p className="text-sm text-slate-400">Caricamento file...</p>}
+        {filesError  && <p className="text-sm text-red-500">{filesError}</p>}
+
+        {!filesLoading && files.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-slate-200 py-8 text-slate-400">
             <File size={36} strokeWidth={1.2} className="mb-3" />
             <p className="text-sm font-medium">No files outside folders</p>
           </div>
         ) : (
           <ul className="flex flex-col gap-2">
-            {filesWithoutFolder.map((file) => (
-              <li
-                key={file.id}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-              >
-                <File size={16} className="text-slate-500" />
-                <span>{file.name}</span>
+            {files.map((file) => (
+              <li key={file.id} className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                <div className="flex items-center gap-2">
+                  <File size={16} className="text-slate-500" />
+                  {renamingFileId === file.id ? (
+                    <input
+                      autoFocus
+                      value={renameFileValue}
+                      onChange={(e) => setRenameFileValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitRenameFile(file.id);
+                        if (e.key === "Escape") setRenamingFileId(null);
+                      }}
+                      onBlur={() => commitRenameFile(file.id)}
+                      className="rounded border border-slate-300 px-2 py-0.5 text-sm"
+                    />
+                  ) : (
+                    <span>{file.filename}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleDownload(file)} className="text-slate-400 hover:text-teal-600" title="Download">
+                    <Download size={14} />
+                  </button>
+                  <button onClick={() => { setRenamingFileId(file.id); setRenameFileValue(file.filename); }} className="text-slate-400 hover:text-slate-700" title="Rename">
+                    <Pencil size={14} />
+                  </button>
+                  <button onClick={() => handleDeleteFile(file.id)} className="text-slate-400 hover:text-red-500" title="Delete">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -158,16 +214,9 @@ function Folders({ showModal, onCloseModal }) {
       </section>
 
       {showModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black/40"
-          onClick={handleClose}
-        >
-          <div
-            className="rounded-lg bg-white p-6 shadow-xl w-80"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40" onClick={handleClose}>
+          <div className="rounded-lg bg-white p-6 shadow-xl w-80" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-4 text-base font-semibold">New Folder</h3>
-
             <input
               autoFocus
               type="text"
@@ -177,19 +226,11 @@ function Folders({ showModal, onCloseModal }) {
               onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
-
             <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={handleClose}
-                className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
-              >
+              <button onClick={handleClose} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
                 Cancel
               </button>
-
-              <button
-                onClick={handleCreateFolder}
-                className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800"
-              >
+              <button onClick={handleCreateFolder} className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800">
                 Create
               </button>
             </div>
