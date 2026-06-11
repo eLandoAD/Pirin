@@ -4,18 +4,16 @@ import { createUserKeys } from "../crypto/dek";
 
 function Input({ label, name, type = "text", value, onChange, hint }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-      <label htmlFor={name} style={{ fontSize: "13px", fontWeight: 500, color: "#1e293b" }}>
+    <div className="flex flex-col gap-1">
+      <label htmlFor={name} className="text-[13px] font-medium text-slate-800">
         {label}
       </label>
       <input
         id={name} name={name} type={type}
         value={value} onChange={onChange} required
-        style={{ borderRadius: "6px", border: "1px solid #cbd5e1", padding: "8px 12px", fontSize: "13px", outline: "none", backgroundColor: "#f8fafc", color: "#0f172a" }}
-        onFocus={e => e.target.style.borderColor = "#5eead4"}
-        onBlur={e => e.target.style.borderColor = "#cbd5e1"}
+        className="rounded-md border border-slate-300 px-3 py-2 text-[13px] outline-none bg-slate-50 text-slate-900 focus:border-green transition-colors"
       />
-      {hint && <span style={{ fontSize: "11px", color: "#94a3b8" }}>{hint}</span>}
+      {hint && <span className="text-[11px] text-slate-400">{hint}</span>}
     </div>
   );
 }
@@ -46,34 +44,32 @@ function LoginView({ onSwitch, onClose, onLoginSuccess }) {
 
   return (
     <>
-      <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>Bentornato</h2>
-      <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#64748b" }}>
-        Non hai un account?{" "}
-        <button onClick={() => onSwitch("signup")} style={{ background: "none", border: "none", color: "#0f766e", cursor: "pointer", fontSize: "13px", padding: 0, fontWeight: 600 }}>
-          Registrati
+      <h2 className="m-0 mb-1 text-[20px] font-bold text-slate-900">Welcome back!</h2>
+      <p className="m-0 mb-6 text-[13px] text-slate-500">
+        You don't have an account?{" "}
+        <button onClick={() => onSwitch("signup")} className="bg-transparent border-none text-green-dark cursor-pointer text-[13px] p-0 font-semibold">
+          Sign Up
         </button>
       </p>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="Email" name="email" type="email" value={form.email} onChange={update} />
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label htmlFor="password" style={{ fontSize: "13px", fontWeight: 500, color: "#1e293b" }}>Password</label>
-            <button type="button" onClick={() => onSwitch("forgot")} style={{ background: "none", border: "none", fontSize: "11px", color: "#94a3b8", cursor: "pointer", padding: 0 }}>
-              Password dimenticata?
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-between items-center">
+            <label htmlFor="password" className="text-[13px] font-medium text-slate-800">Password</label>
+            <button type="button" onClick={() => onSwitch("forgot")} className="bg-transparent border-none text-[11px] text-slate-400 cursor-pointer p-0">
+              Password forgotten?
             </button>
           </div>
           <input
             id="password" name="password" type="password"
             value={form.password} onChange={update} required
-            style={{ borderRadius: "6px", border: "1px solid #cbd5e1", padding: "8px 12px", fontSize: "13px", outline: "none", backgroundColor: "#f8fafc", color: "#0f172a" }}
-            onFocus={e => e.target.style.borderColor = "#5eead4"}
-            onBlur={e => e.target.style.borderColor = "#cbd5e1"}
+            className="rounded-md border border-slate-300 px-3 py-2 text-[13px] outline-none bg-slate-50 text-slate-900 focus:border-green transition-colors"
           />
         </div>
-        {error && <p style={{ borderRadius: "6px", backgroundColor: "#fef2f2", padding: "8px 12px", fontSize: "13px", color: "#dc2626", margin: 0 }}>{error}</p>}
+        {error && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-600 m-0">{error}</p>}
         <button type="submit" disabled={loading}
-          style={{ marginTop: "4px", width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
-          {loading ? "Accesso in corso..." : "Accedi"}
+          className={`mt-1 w-full rounded-md bg-slate-900 border-none p-2.5 text-[13px] font-semibold text-white cursor-pointer ${loading ? 'opacity-70' : 'opacity-100'}`}>
+          {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
     </>
@@ -92,7 +88,7 @@ function SignUpView({ onSwitch }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (form.password !== form.confirm) { setError("Le password non corrispondono."); return; }
+    if (form.password !== form.confirm) { setError("The passwords do not match."); return; }
     setLoading(true);
     try {
       const { encryptedDek, dekSalt, dekIv } = await createUserKeys(form.password);
@@ -107,22 +103,22 @@ function SignUpView({ onSwitch }) {
 
   return (
     <>
-      <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>Crea account</h2>
-      <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#64748b" }}>
-        Hai già un account?{" "}
-        <button onClick={() => onSwitch("login")} style={{ background: "none", border: "none", color: "#0f766e", cursor: "pointer", fontSize: "13px", padding: 0, fontWeight: 600 }}>
-          Accedi
+      <h2 className="m-0 mb-1 text-[20px] font-bold text-slate-900">Crea account</h2>
+      <p className="m-0 mb-6 text-[13px] text-slate-500">
+        You already have an account?{" "}
+        <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-green-dark cursor-pointer text-[13px] p-0 font-semibold">
+          Log In
         </button>
       </p>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="Username" name="username" value={form.username} onChange={update} />
         <Input label="Email" name="email" type="email" value={form.email} onChange={update} />
-        <Input label="Password" name="password" type="password" value={form.password} onChange={update} hint="Almeno 8 caratteri" />
-        <Input label="Conferma password" name="confirm" type="password" value={form.confirm} onChange={update} />
-        {error && <p style={{ borderRadius: "6px", backgroundColor: "#fef2f2", padding: "8px 12px", fontSize: "13px", color: "#dc2626", margin: 0 }}>{error}</p>}
+        <Input label="Password" name="password" type="password" value={form.password} onChange={update} hint="At least 8 characters" />
+        <Input label="Confirm password" name="confirm" type="password" value={form.confirm} onChange={update} />
+        {error && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-600 m-0">{error}</p>}
         <button type="submit" disabled={loading}
-          style={{ marginTop: "4px", width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
-          {loading ? "Registrazione in corso..." : "Crea account"}
+          className={`mt-1 w-full rounded-md bg-slate-900 border-none p-2.5 text-[13px] font-semibold text-white cursor-pointer ${loading ? 'opacity-70' : 'opacity-100'}`}>
+          {loading ? "Registration in progress..." : "Create account"}
         </button>
       </form>
     </>
@@ -131,15 +127,15 @@ function SignUpView({ onSwitch }) {
 
 function VerifyView({ onSwitch }) {
   return (
-    <div style={{ textAlign: "center", padding: "16px 0" }}>
-      <div style={{ fontSize: "40px", marginBottom: "16px" }}>✉️</div>
-      <h2 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 600, color: "#0f172a" }}>Controlla la tua email</h2>
-      <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "24px" }}>
-        Ti abbiamo inviato un link di verifica.<br />
-        Clicca il link per attivare il tuo account.
+    <div className="text-center py-4">
+      <div className="text-[40px] mb-4">✉️</div>
+      <h2 className="m-0 mb-2 text-[18px] font-semibold text-slate-900">Check your email</h2>
+      <p className="text-[13px] text-slate-500 mb-6">
+        We've sent you a verification link.<br />
+        Click the link to activate your account.
       </p>
-      <button onClick={() => onSwitch("login")} style={{ background: "none", border: "none", fontSize: "13px", color: "#0f766e", cursor: "pointer", fontWeight: 600 }}>
-        Torna al login
+      <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-[13px] text-teal-700 cursor-pointer font-semibold">
+        Return to login
       </button>
     </div>
   );
@@ -166,14 +162,14 @@ function ForgotView({ onSwitch }) {
 
   if (sent) {
     return (
-      <div style={{ textAlign: "center", padding: "16px 0" }}>
-        <div style={{ fontSize: "40px", marginBottom: "16px" }}>📬</div>
-        <h2 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 600, color: "#0f172a" }}>Link inviato</h2>
-        <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "24px" }}>
-          Se l'email è registrata, riceverai un link per il reset.
+      <div className="text-center py-4">
+        <div className="text-[40px] mb-4">📬</div>
+        <h2 className="m-0 mb-2 text-[18px] font-semibold text-slate-900">Link sent</h2>
+        <p className="text-[13px] text-slate-500 mb-6">
+          If your email address is registered, you will receive a reset link.
         </p>
-        <button onClick={() => onSwitch("login")} style={{ background: "none", border: "none", fontSize: "13px", color: "#0f766e", cursor: "pointer", fontWeight: 600 }}>
-          Torna al login
+        <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-[13px] text-teal-700 cursor-pointer font-semibold">
+          Return to login
         </button>
       </div>
     );
@@ -181,17 +177,17 @@ function ForgotView({ onSwitch }) {
 
   return (
     <>
-      <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>Reset password</h2>
-      <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#64748b" }}>Inserisci la tua email e ti mandiamo un link.</p>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <h2 className="m-0 mb-1 text-[20px] font-bold text-slate-900">Reset password</h2>
+      <p className="m-0 mb-6 text-[13px] text-slate-500">Enter your email and we'll send you a link.</p>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="Email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        {error && <p style={{ borderRadius: "6px", backgroundColor: "#fef2f2", padding: "8px 12px", fontSize: "13px", color: "#dc2626", margin: 0 }}>{error}</p>}
+        {error && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-600 m-0">{error}</p>}
         <button type="submit" disabled={loading}
-          style={{ width: "100%", borderRadius: "6px", backgroundColor: "#0f172a", border: "none", padding: "10px", fontSize: "13px", fontWeight: 600, color: "white", cursor: "pointer" }}>
-          {loading ? "Invio in corso..." : "Invia link"}
+          className="w-full rounded-md bg-slate-900 border-none p-2.5 text-[13px] font-semibold text-white cursor-pointer">
+          {loading ? "Sending..." : "Send link"}
         </button>
-        <button type="button" onClick={() => onSwitch("login")} style={{ background: "none", border: "none", fontSize: "12px", color: "#94a3b8", cursor: "pointer" }}>
-          Torna al login
+        <button type="button" onClick={() => onSwitch("login")} className="bg-transparent border-none text-[12px] text-slate-400 cursor-pointer">
+          Return to login
         </button>
       </form>
     </>
@@ -202,10 +198,10 @@ export default function AuthModal({ initialView = "login", onClose, onLoginSucce
   const [view, setView] = useState(initialView);
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
+    <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div onClick={(e) => e.stopPropagation()}
-        style={{ position: "relative", width: "100%", maxWidth: "400px", margin: "0 16px", borderRadius: "12px", border: "1px solid #e2e8f0", backgroundColor: "white", padding: "32px", boxShadow: "0 25px 60px rgba(0,0,0,0.2)" }}>
-        <button onClick={onClose} style={{ position: "absolute", right: "16px", top: "16px", background: "none", border: "none", fontSize: "16px", color: "#94a3b8", cursor: "pointer", lineHeight: 1 }}>✕</button>
+        className="relative w-full max-w-100 mx-4 rounded-xl border border-slate-200 bg-white p-8 shadow-[0_25px_60px_rgba(0,0,0,0.2)]">
+        <button onClick={onClose} className="absolute right-4 top-4 bg-transparent border-none text-[16px] text-slate-400 cursor-pointer line-height-none">✕</button>
         {view === "login"  && <LoginView  onSwitch={setView} onClose={onClose} onLoginSuccess={onLoginSuccess} />}
         {view === "signup" && <SignUpView onSwitch={setView} onClose={onClose} />}
         {view === "verify" && <VerifyView onSwitch={setView} />}

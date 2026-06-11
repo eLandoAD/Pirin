@@ -10,6 +10,7 @@ public class FileRecord {
     private Long id;
 
     private String filename;
+    @JsonIgnore
     private String storagePath;
     private String salt;
     private String iv;

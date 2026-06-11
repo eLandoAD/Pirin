@@ -6,10 +6,10 @@ export default function SettingsModal({ darkMode, onToggle, onClose }) {
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
     >
-      {/* Box centrato */}
+      {/* Box centrato — AGGIORNA QUESTA RIGA QUI SOTTO */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm rounded-xl bg-white p-8 shadow-xl"
+        className="relative w-full max-w-sm rounded-xl bg-white dark:bg-slate-900 p-8 shadow-xl border dark:border-slate-800"
       >
         {/* Pulsante chiudi */}
         <button

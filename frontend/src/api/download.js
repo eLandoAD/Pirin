@@ -1,7 +1,7 @@
 import { deriveKEK } from "../crypto/key";
 import { authHeader } from "./auth";
 
-const BASE_URL = "/api";
+const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api";
 
 export async function downloadAndDecrypt(id, password, fileMeta) {
   const res = await fetch(`${BASE_URL}/download/${id}`, {

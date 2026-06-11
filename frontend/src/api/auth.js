@@ -1,4 +1,4 @@
-const BASE_URL = "/api/auth";
+const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api/auth";
 
 export function saveToken(token) {
   localStorage.setItem("jwt", token);
@@ -40,6 +40,7 @@ export async function login(email, password) {
   if (data.encryptedDek) localStorage.setItem("encryptedDek", data.encryptedDek);
   if (data.dekSalt)      localStorage.setItem("dekSalt",      data.dekSalt);
   if (data.dekIv)        localStorage.setItem("dekIv",        data.dekIv);
+  localStorage.setItem("username", data.username);
   return data;
 }
 
