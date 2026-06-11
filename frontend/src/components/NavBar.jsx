@@ -3,16 +3,13 @@ import { Bell, Menu, LogOut, User } from "lucide-react";
 import Authentification from "./Authentification";
 import { logout, getToken } from "../api/auth";
 
-// Unisce le prop per il menu mobile (Current) e il successo del login (Incoming)
 function NavBar({ onMenuOpen, onLoginSuccess }) {
   const [modal, setModal] = useState(null);
 
-  // Legge i dati utente dal localStorage se già loggato (Incoming)
   const [user, setUser] = useState(() => {
     const token = getToken();
     if (!token) return null;
     try {
-      // Il JWT contiene i dati utente nel payload (parte centrale)
       const payload = JSON.parse(atob(token.split(".")[1]));
       return { username: payload.username };
     } catch {
@@ -36,7 +33,7 @@ function NavBar({ onMenuOpen, onLoginSuccess }) {
         {/* hamburger — solo mobile (Current) */}
         <button
           onClick={onMenuOpen}
-          className="md:hidden text-slate-600 hover:text-slate-900"
+          className="lg:hidden text-slate-600 hover:text-slate-900"
         >
           <Menu size={22} />
         </button>
@@ -44,11 +41,11 @@ function NavBar({ onMenuOpen, onLoginSuccess }) {
         <input
           type="text"
           placeholder="Search..."
-          className="w-full md:w-[30%] p-1 pl-3 border rounded-lg border-slate-300 outline-none focus:border-teal-600 bg-white text-sm"
+          className="w-full md:w-[30%] p-1 pl-3 border rounded-lg border-slate-300 outline-none focus:border-green-dark bg-white text-sm"
         />
 
         <div className="flex items-center gap-4 ml-auto">
-          <Bell size={20} className="text-slate-600 cursor-pointer hover:text-teal-700 shrink-0" />
+          <Bell size={20} className="text-slate-600 cursor-pointer hover:text-green shrink-0" />
 
           {user ? (
             <div className="flex items-center gap-3 pr-4">
@@ -78,7 +75,7 @@ function NavBar({ onMenuOpen, onLoginSuccess }) {
               </button>
               <button
                 onClick={() => setModal("signup")}
-                className="bg-[#0f766e] rounded-lg hover:bg-teal-600 cursor-pointer px-3 py-1.5 text-white text-sm whitespace-nowrap"
+                className="bg-green-dark rounded-lg hover:bg-green cursor-pointer px-3 py-1.5 text-white text-sm whitespace-nowrap"
               >
                 Sign Up
               </button>

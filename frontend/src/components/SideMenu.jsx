@@ -116,14 +116,9 @@ export default function SideMenu({ onCreateFolder, onUpload, mobileOpen, onMobil
         {inner(false)}
       </aside>
 
-      {/* Tablet collapsed sidebar (icons only) */}
-      <aside className="hidden md:flex lg:hidden w-16 flex-col border-r border-slate-300 bg-slate-100">
-        {inner(true)}
-      </aside>
-
       {/* Mobile drawer overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 flex md:hidden" onClick={onMobileClose}>
+        <div className="fixed inset-0 z-40 flex lg:hidden" onClick={onMobileClose}>
           <div
             className="w-60 bg-slate-100 border-r border-slate-300 shadow-xl"
             onClick={(e) => e.stopPropagation()}

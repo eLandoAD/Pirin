@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev',
         changeOrigin: true,
       },
     },
