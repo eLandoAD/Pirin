@@ -30,14 +30,6 @@ function NavBar({ onMenuOpen, onLoginSuccess }) {
   return (
     <>
       <nav className="bg-primary-white flex items-center p-4 px-6 gap-4">
-        {/* hamburger — solo mobile (Current) */}
-        <button
-          onClick={onMenuOpen}
-          className="lg:hidden text-slate-600 hover:text-slate-900"
-        >
-          <Menu size={22} />
-        </button>
-
         <input
           type="text"
           placeholder="Search..."

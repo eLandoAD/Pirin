@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import NavBar from "./components/NavBar";
 import SideMenu from "./components/SideMenu";
 import Folders from "./components/Folders";
+import BottomNavigation from "./components/BottomNavigation";
+import SettingsModal from "./components/SettingsModal";
 
 const BASE_URL = "/api/auth";
 
 function App() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [user, setUser] = useState(null);
@@ -56,25 +57,20 @@ function App() {
     setDarkMode((prev) => {
       const next = !prev;
       localStorage.setItem("darkMode", next);
-      document.documentElement.classList.toggle("dark", next);
       return next;
     });
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
-      <SideMenu
-        onCreateFolder={() => setShowFolderModal(true)}
-        mobileOpen={mobileMenuOpen}
-        onMobileClose={() => setMobileMenuOpen(false)}
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
+      {/* 2. Passa la funzione per aprire i settings al SideMenu (Desktop) */}
+      <SideMenu 
+        onCreateFolder={() => setShowFolderModal(true)} 
+        onOpenSettings={() => setShowSettings(true)} 
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <NavBar
-          onMenuOpen={() => setMobileMenuOpen(true)}
-          onLoginSuccess={handleLoginSuccess}
-          user={user}
-        />
+        <NavBar onLoginSuccess={handleLoginSuccess} user={user} />
 
         {verifyMessage && (
           <div style={{ backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", padding: "10px 24px", fontSize: "13px", color: "#166534" }}>
@@ -85,14 +81,26 @@ function App() {
           </div>
         )}
 
-        <main className="flex-1 overflow-y-auto border-t border-slate-300 p-4 md:p-8">
-          <h1 className="mb-4 text-2xl font-bold">Vault Explorer</h1>
+        <main className="flex-1 overflow-y-auto border-t border-slate-300 p-4 md:p-8 pb-20 lg:pb-8">
+          <h1 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Vault Explorer</h1>
           <Folders
             showModal={showFolderModal}
             onCloseModal={() => setShowFolderModal(false)}
           />
         </main>
+
+        {/* 3. Passa la funzione per aprire i settings alla BottomNavigation (Mobile) */}
+        <BottomNavigation onOpenSettings={() => setShowSettings(true)} />
       </div>
+
+      {/* 4. Mostra il modal solo se showSettings è true */}
+      {showSettings && (
+        <SettingsModal
+          darkMode={darkMode}
+          onToggle={toggleDarkMode}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
   );
 }
