@@ -97,19 +97,6 @@ export default function SideMenu({ onCreateFolder, onOpenSettings, onUploadSucce
             </div>
           ))}
         </div>
-
-        {/* Box Utente */}
-        <div className={["mt-7 flex items-center gap-2", collapsed ? "justify-center px-0" : "px-3"].join(" ")}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-teal-300 border border-slate-800">
-            <Gem size={14} />
-          </div>
-          {!collapsed && (
-            <div>
-              <p className="text-sm font-medium leading-none text-black dark:text-white">user</p>
-              <p className="mt-1 text-[10px] font-semibold tracking-[0.08em] text-teal-800 dark:text-teal-400">PRO TIER</p>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
