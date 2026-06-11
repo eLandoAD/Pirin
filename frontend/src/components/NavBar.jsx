@@ -37,7 +37,7 @@ function NavBar({ onMenuOpen, onLoginSuccess }) {
         />
 
         <div className="flex items-center gap-4 ml-auto">
-          <Bell size={20} className="text-slate-600 cursor-pointer hover:text-green shrink-0" />
+          <Bell size={20} className="text-slate-500 cursor-pointer hover:text-green shrink-0" />
 
           {user ? (
             <div className="flex items-center gap-3 pr-4">
@@ -45,13 +45,13 @@ function NavBar({ onMenuOpen, onLoginSuccess }) {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green text-white">
                   <User size={14} />
                 </div>
-                <span className="text-sm font-medium text-slate-700">
+                <span className="text-sm font-medium text-slate-500">
                   {user.username}
                 </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100"
               >
                 <LogOut size={14} />
                 Log Out

@@ -1,10 +1,9 @@
-import { Folder, Share2, History, Settings } from "lucide-react";
+import { Folder, Share2, CloudUpload, Settings } from "lucide-react";
 
-// Questo array DEVE chiamarsi bottomNavItems
 const bottomNavItems = [
   { icon: <Folder size={20} />, label: "FILES", active: true },
   { icon: <Share2 size={20} />, label: "SHARED" },
-  { icon: <History size={20} />, label: "RECENT" },
+  { icon: <CloudUpload size={20} />, label: "BACKUPS"},
   { icon: <Settings size={20} />, label: "SETTINGS" },
 ];
 

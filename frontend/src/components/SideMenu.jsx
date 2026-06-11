@@ -1,13 +1,13 @@
 import { useState } from "react";
 import {
-  Plus, Lock, Users, CloudUpload,
+  Plus, Lock, Share2, CloudUpload,
   Settings, HelpCircle, Gem,
 } from "lucide-react";
 import Upload from "./Upload";
 
 const navItems = [
   { icon: <Lock size={18} />, label: "Personal Vault", active: true },
-  { icon: <Users size={18} />, label: "Team Shared" },
+  { icon: <Share2 size={18} />, label: "Shared" },
   { icon: <CloudUpload size={18} />, label: "Backups" },
 ];
 
