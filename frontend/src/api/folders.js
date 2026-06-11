@@ -1,6 +1,6 @@
 import { authHeader } from "./auth";
 
-const BASE_URL = "/api";
+const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api";
 
 export async function fetchFolders() {
   const res = await fetch(`${BASE_URL}/folders`, {

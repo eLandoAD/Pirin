@@ -48,7 +48,7 @@ function Folders({ showModal, onCloseModal }) {
     const password = prompt("Inserisci la tua password per decifrare il file:");
     if (!password) return;
     try {
-      const blob = await downloadAndDecrypt(file.id, password, { iv: file.fileIv });
+      const blob = await downloadAndDecrypt(file.id, password, { iv: file.iv });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement("a");
       a.href     = url;
@@ -197,7 +197,7 @@ function Folders({ showModal, onCloseModal }) {
         ) : (
           <ul className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" : "flex flex-col gap-2"}>
             {files.map((file) => (
-              <li key={file.id} className={`group flex justify-between rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 border border-transparent ${viewMode === "grid" ? "flex-col items-start gap-3 bg-slate-50/50 border-slate-200" : "items-center"}`}>
+              <li key={file.id} className={`group flex justify-between rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 border border-transparent ${viewMode === "grid" ? "flex-col items-start gap-3 border-slate-200" : "items-center"}`}>
                 <div className={`flex gap-2 min-w-0 w-full ${viewMode === "grid" ? "flex-col items-start" : "items-center"}`}>
                   <File size={viewMode === "grid" ? 24 : 16} className="text-slate-500 shrink-0" />
                   {renamingFileId === file.id ? (

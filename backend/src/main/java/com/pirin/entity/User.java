@@ -1,5 +1,6 @@
 package com.pirin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -16,16 +17,21 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String passwordHash;
 
+    @JsonIgnore
     @Column(columnDefinition = "TEXT")
     private String encryptedDek;
 
+    @JsonIgnore
     private String dekSalt;
 
+    @JsonIgnore
     private String dekIv;
 
+    @JsonIgnore
     private boolean enabled = false;
 
     public Long getId() { return id; }
@@ -47,7 +53,7 @@ public class User {
 
     public String getDekIv() { return dekIv; }
     public void setDekIv(String dekIv) { this.dekIv = dekIv; }
-
+    
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
 }

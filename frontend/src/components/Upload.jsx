@@ -10,7 +10,7 @@ const FILE_TYPES = [
   { label: "Altro",     icon: File,     accept: "*" },
 ];
 
-export default function UploadModal({ onClose }) {
+export default function UploadModal({ onClose, onUploadSuccess }) {
   const [selected, setSelected]   = useState(null);
   const [dragging, setDragging]   = useState(false);
   const [files, setFiles]         = useState([]);
@@ -46,6 +46,7 @@ export default function UploadModal({ onClose }) {
       for (const file of files) {
         await uploadFile(file, password);
       }
+      onUploadSuccess?.();
       onClose();
     } catch (err) {
       setUploadError(err.message || "Error while uploading.");

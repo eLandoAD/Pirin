@@ -9,12 +9,8 @@ function NavBar({ onMenuOpen, onLoginSuccess }) {
   const [user, setUser] = useState(() => {
     const token = getToken();
     if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return { username: payload.username };
-    } catch {
-      return null;
-    }
+    const username = localStorage.getItem("username");
+    return username ? { username } : null;
   });
 
   function handleLoginSuccess(data) {
@@ -24,6 +20,7 @@ function NavBar({ onMenuOpen, onLoginSuccess }) {
 
   async function handleLogout() {
     await logout();
+    localStorage.removeItem("username");
     setUser(null);
   }
 

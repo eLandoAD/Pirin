@@ -5,17 +5,19 @@ import Folders from "./components/Folders";
 import BottomNavigation from "./components/BottomNavigation";
 import SettingsModal from "./components/SettingsModal";
 
-const BASE_URL = "/api/auth";
+const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api/auth";
 
 function App() {
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [user, setUser] = useState(null);
+  const [fileRefreshKey, setFileRefreshKey] = useState(0);
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("darkMode") === "true"
   );
   const [verifyMessage, setVerifyMessage] = useState("");
 
+  // Verifica email dal link
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
@@ -30,6 +32,7 @@ function App() {
     }
   }, []);
 
+  // Ripristina utente dal localStorage al refresh
   useEffect(() => {
     const token = localStorage.getItem("jwt");
     const username = localStorage.getItem("username");
@@ -42,9 +45,10 @@ function App() {
   function handleLoginSuccess(data) {
     setUser(data);
     if (data.username) localStorage.setItem("username", data.username);
-    if (data.email)    localStorage.setItem("email",    data.email);
+    if (data.email) localStorage.setItem("email", data.email);
   }
 
+  // Dark mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -63,10 +67,10 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
-      {/* 2. Passa la funzione per aprire i settings al SideMenu (Desktop) */}
-      <SideMenu 
-        onCreateFolder={() => setShowFolderModal(true)} 
-        onOpenSettings={() => setShowSettings(true)} 
+      <SideMenu
+        onCreateFolder={() => setShowFolderModal(true)}
+        onOpenSettings={() => setShowSettings(true)}
+        onUploadSuccess={() => setFileRefreshKey(k => k + 1)}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -86,14 +90,13 @@ function App() {
           <Folders
             showModal={showFolderModal}
             onCloseModal={() => setShowFolderModal(false)}
+            fileRefreshKey={fileRefreshKey}
           />
         </main>
 
-        {/* 3. Passa la funzione per aprire i settings alla BottomNavigation (Mobile) */}
         <BottomNavigation onOpenSettings={() => setShowSettings(true)} />
       </div>
 
-      {/* 4. Mostra il modal solo se showSettings è true */}
       {showSettings && (
         <SettingsModal
           darkMode={darkMode}

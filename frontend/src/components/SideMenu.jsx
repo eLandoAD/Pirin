@@ -33,7 +33,7 @@ function SideMenuItem({ icon, label, active = false, collapsed }) {
   );
 }
 
-export default function SideMenu({ onCreateFolder, onUpload, onOpenSettings }) {
+export default function SideMenu({ onCreateFolder, onOpenSettings, onUploadSuccess }) {
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const inner = (collapsed = false) => (
@@ -121,7 +121,7 @@ export default function SideMenu({ onCreateFolder, onUpload, onOpenSettings }) {
         {inner(false)}
       </aside>
 
-      {uploadOpen && <Upload onClose={() => setUploadOpen(false)} onUpload={onUpload} />}
+      {uploadOpen && <Upload onClose={() => setUploadOpen(false)} onUploadSuccess={onUploadSuccess} />}
     </>
   );
 }
