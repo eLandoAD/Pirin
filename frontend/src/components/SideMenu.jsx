@@ -6,25 +6,19 @@ import {
 import Upload from "./Upload";
 
 const navItems = [
-  { icon: <Lock size={18} />, label: "Personal Vault", active: true },
-  { icon: <Share2 size={18} />, label: "Shared" },
-  { icon: <CloudUpload size={18} />, label: "Backups" },
-];
-
-const bottomItems = [
+  { icon: <Share2 size={18} />, label: "Share" },
   { icon: <Settings size={18} />, label: "Settings" },
-  { icon: <HelpCircle size={18} />, label: "Support" },
 ];
 
-function SideMenuItem({ icon, label, active = false, collapsed }) {
+function SideMenuItem({ icon, label, collapsed }) {
   return (
     <a
       href="#"
       title={collapsed ? label : undefined}
       className={[
-        "flex h-11 items-center gap-2.5 rounded-md px-3 text-sm font-normal transition",
+        "flex h-11 items-center gap-2.5 rounded-md px-3 text-sm font-semibold transition uppercase tracking-wide",
         collapsed ? "justify-center px-0" : "",
-        active ? "bg-green text-white hover:bg-green-dark" : "text-slate-800 hover:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-800",
+        "bg-black text-white hover:bg-neutral-600 dark:bg-slate-800 dark:hover:bg-slate-700"
       ].join(" ")}
     >
       {icon}
@@ -53,7 +47,7 @@ export default function SideMenu({ onCreateFolder, onOpenSettings, onUploadSucce
         <button
           onClick={() => setUploadOpen(true)}
           className={[
-            "mb-4 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-black text-sm font-semibold text-white transition hover:bg-neutral-600 dark:bg-slate-800 dark:hover:bg-slate-700",
+            "mb-4 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-green text-white hover:bg-green-dark transition text-sm font-semibold",
             collapsed ? "px-0" : "",
           ].join(" ")}
           title={collapsed ? "Upload File" : undefined}
@@ -66,7 +60,7 @@ export default function SideMenu({ onCreateFolder, onOpenSettings, onUploadSucce
         <button
           onClick={onCreateFolder}
           className={[
-            "mb-9 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-black text-sm font-semibold text-white transition hover:bg-neutral-600 dark:bg-slate-800 dark:hover:bg-slate-700",
+            "mb-9 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-green text-white hover:bg-green-dark transition text-sm font-semibold",
             collapsed ? "px-0" : "",
           ].join(" ")}
           title={collapsed ? "Create Folder" : undefined}
@@ -77,33 +71,22 @@ export default function SideMenu({ onCreateFolder, onOpenSettings, onUploadSucce
 
         {/* Navigazione Principale */}
         <nav className="flex flex-col gap-2">
-          {navItems.map(({ icon, label, active }) => (
-            <SideMenuItem key={label} icon={icon} label={label} active={active} collapsed={collapsed} />
+          {navItems.map(({ icon, label }) => (
+            <SideMenuItem 
+              key={label} 
+              icon={icon} 
+              label={label} 
+              collapsed={collapsed} 
+            />
           ))}
         </nav>
-      </div>
-
-      {/* Navigazione Inferiore e Profilo */}
-      <div>
-        <div className="mb-5 h-px bg-slate-300 dark:bg-slate-800" />
-        <div className="flex flex-col gap-2">
-          {bottomItems.map(({ icon, label }) => (
-            <div
-              key={label}
-              onClick={label === "Settings" ? onOpenSettings : undefined}
-              className={label === "Settings" ? "cursor-pointer" : ""}
-            >
-              <SideMenuItem icon={icon} label={label} collapsed={collapsed} />
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
 
   return (
     <>
-      {/* Sidebar Desktop — Rimane fissa a sinistra, scompare su mobile (lg:flex) */}
+      {/* Sidebar Desktop */}
       <aside className="hidden lg:flex w-60 h-screen sticky top-0 flex-col border-r border-slate-300 bg-slate-100 dark:border-slate-800 dark:bg-slate-900">
         {inner(false)}
       </aside>
