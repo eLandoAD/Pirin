@@ -2,6 +2,7 @@ package com.pirin.controller;
 
 import com.pirin.entity.FolderRecord;
 import com.pirin.entity.User;
+import com.pirin.repository.FileRepository;
 import com.pirin.repository.FolderRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,9 +16,11 @@ import java.util.Map;
 public class FolderController {
 
     private final FolderRepository repository;
+    private final FileRepository fileRepository;
 
-    public FolderController(FolderRepository repository) {
+    public FolderController(FolderRepository repository, FileRepository fileRepository) {
         this.repository = repository;
+        this.fileRepository = fileRepository;
     }
 
     @GetMapping
@@ -62,7 +65,23 @@ public class FolderController {
         User user = (User) authentication.getPrincipal();
         repository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new RuntimeException("Cartella non trovata."));
-        repository.deleteById(id);
+
+        deleteCascade(id, user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Cancella ricorsivamente la cartella, tutte le sottocartelle
+     * e tutti i file contenuti in ciascuna.
+     */
+    private void deleteCascade(Long folderId, Long userId) {
+        fileRepository.deleteAllByFolderIdAndUserId(folderId, userId);
+
+        List<FolderRecord> children = repository.findAllByParentIdAndUserId(folderId, userId);
+        for (FolderRecord child : children) {
+            deleteCascade(child.getId(), userId);
+        }
+
+        repository.deleteById(folderId);
     }
 }
