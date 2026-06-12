@@ -4,7 +4,7 @@ import { useFolders } from "../hooks/useFolders";
 import { fetchFiles, renameFileApi, deleteFileApi } from "../api/files";
 import { downloadAndDecrypt } from "../api/download";
 
-function Folders({ showModal, onCloseModal }) {
+function Folders({ showModal, onCloseModal, fileRefreshKey, user }) {
   const {
     currentFolders,
     breadcrumb,
@@ -28,8 +28,12 @@ function Folders({ showModal, onCloseModal }) {
   const [renameFileValue, setRenameFileValue] = useState("");
 
   useEffect(() => {
-    loadFiles();
-  }, []);
+    if (user) {
+      loadFiles();
+    } else {
+      setFiles([]);
+    }
+  }, [fileRefreshKey, user]);
 
   async function loadFiles() {
     setFilesLoading(true);
@@ -165,7 +169,7 @@ function Folders({ showModal, onCloseModal }) {
                   />
                 ) : (
                   <button onClick={() => openFolder(folder.id)} className={`flex gap-2 text-sm font-medium text-slate-800 text-left truncate w-full ${viewMode === "grid" ? "flex-col items-start" : "items-center"}`}>
-                    <Folder size={viewMode === "grid" ? 24 : 16} className="text-teal-600 shrink-0" />
+                    <Folder size={viewMode === "grid" ? 24 : 16} className="text-green shrink-0" />
                     <span className="truncate w-full">{folder.name}</span>
                   </button>
                 )}

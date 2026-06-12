@@ -4,6 +4,7 @@ import SideMenu from "./components/SideMenu";
 import Folders from "./components/Folders";
 import BottomNavigation from "./components/BottomNavigation";
 import SettingsModal from "./components/SettingsModal";
+import Authentification from "./components/Authentification";
 
 const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api/auth";
 
@@ -16,12 +17,19 @@ function App() {
     () => localStorage.getItem("darkMode") === "true"
   );
   const [verifyMessage, setVerifyMessage] = useState("");
+  const [resetToken, setResetToken] = useState(null);
 
-  // Verifica email dal link
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    if (token) {
+    const path = window.location.pathname;
+
+    if (token && path === "/reset-password") {
+      // è un link di reset password — apri il modal
+      setResetToken(token);
+      window.history.replaceState({}, "", "/");
+    } else if (token) {
+      // è un link di verifica email
       fetch(`${BASE_URL}/verify?token=${token}`)
         .then((res) => res.json())
         .then((data) => {
@@ -46,6 +54,10 @@ function App() {
     setUser(data);
     if (data.username) localStorage.setItem("username", data.username);
     if (data.email) localStorage.setItem("email", data.email);
+  }
+
+  function handleLogout() {
+    setUser(null);
   }
 
   // Dark mode
@@ -74,7 +86,7 @@ function App() {
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <NavBar onLoginSuccess={handleLoginSuccess} user={user} />
+        <NavBar onLoginSuccess={handleLoginSuccess} onLogout={handleLogout} user={user} />
 
         {verifyMessage && (
           <div style={{ backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", padding: "10px 24px", fontSize: "13px", color: "#166534" }}>
@@ -88,9 +100,11 @@ function App() {
         <main className="flex-1 overflow-y-auto border-t border-slate-300 p-4 md:p-8 pb-20 lg:pb-8">
           <h1 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Vault Explorer</h1>
           <Folders
+            key={user ? user.username : "guest"}
             showModal={showFolderModal}
             onCloseModal={() => setShowFolderModal(false)}
             fileRefreshKey={fileRefreshKey}
+            user={user}
           />
         </main>
 
@@ -102,6 +116,15 @@ function App() {
           darkMode={darkMode}
           onToggle={toggleDarkMode}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {resetToken && (
+        <Authentification
+          initialView="reset"
+          resetToken={resetToken}
+          onClose={() => setResetToken(null)}
+          onLoginSuccess={handleLoginSuccess}
         />
       )}
     </div>
