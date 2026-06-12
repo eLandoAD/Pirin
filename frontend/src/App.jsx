@@ -16,12 +16,19 @@ function App() {
     () => localStorage.getItem("darkMode") === "true"
   );
   const [verifyMessage, setVerifyMessage] = useState("");
+  const [resetToken, setResetToken] = useState(null);
 
-  // Verifica email dal link
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    if (token) {
+    const path = window.location.pathname;
+
+    if (token && path === "/reset-password") {
+      // è un link di reset password — apri il modal
+      setResetToken(token);
+      window.history.replaceState({}, "", "/");
+    } else if (token) {
+      // è un link di verifica email
       fetch(`${BASE_URL}/verify?token=${token}`)
         .then((res) => res.json())
         .then((data) => {
@@ -102,6 +109,15 @@ function App() {
           darkMode={darkMode}
           onToggle={toggleDarkMode}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {resetToken && (
+        <Authentification
+          initialView="reset"
+          resetToken={resetToken}
+          onClose={() => setResetToken(null)}
+          onLoginSuccess={handleLoginSuccess}
         />
       )}
     </div>
