@@ -10,12 +10,21 @@ const FILE_TYPES = [
   { label: "Altro",     icon: File,     accept: "*" },
 ];
 
+function formatBytes(bytes) {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
+
 export default function UploadModal({ onClose, onUploadSuccess }) {
   const [selected, setSelected]   = useState(null);
   const [dragging, setDragging]   = useState(false);
   const [files, setFiles]         = useState([]);
   const [uploading, setUploading] = useState(false); 
-  const [uploadError, setUploadError] = useState(""); 
+  const [uploadError, setUploadError] = useState("");
+  const [uploadProgress, setUploadProgress] = useState({});
   const inputRef = useRef();
 
   function handleDrop(e) {
@@ -42,9 +51,16 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
 
     setUploading(true);
     setUploadError("");
+    setUploadProgress({});
     try {
       for (const file of files) {
-        await uploadFile(file, password);
+        await uploadFile(file, password, (loaded, total) => {
+          const percentage = (loaded / total) * 100;
+          setUploadProgress((prev) => ({
+            ...prev,
+            [file.name]: { percentage, loaded, total },
+          }));
+        });
       }
       onUploadSuccess?.();
       onClose();
@@ -117,14 +133,42 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
 
             {files.length > 0 && (
               <div className="mb-4 flex flex-col gap-1.5">
-                {files.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-2 rounded-md bg-slate-100 text-[12px] text-slate-700">
-                    <span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-85">{f.name}</span>
-                    <button onClick={() => removeFile(i)} className="bg-transparent border-none cursor-pointer text-slate-500 ml-2 p-0">
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
+                {files.map((f, i) => {
+                  const progress = uploadProgress[f.name];
+                  const percentage = progress?.percentage ?? 0;
+                  return (
+                    <div key={i} className="relative">
+                      <div className="flex items-center justify-between px-3 py-2 rounded-md bg-slate-100 text-[12px] text-slate-700 relative z-10">
+                        <div className="flex-1 min-w-0">
+                          <span className="overflow-hidden text-ellipsis whitespace-nowrap block">{f.name}</span>
+                          <span className="text-[11px] text-slate-500">{formatBytes(f.size)}</span>
+                        </div>
+                        <div className="ml-3 text-right">
+                          {progress !== undefined ? (
+                            <div className="flex flex-col items-end">
+                              <span className="text-[11px] text-slate-500 font-medium">{Math.round(percentage)}%</span>
+                              <span className="text-[10px] text-slate-400">
+                                {formatBytes(progress.loaded)} / {formatBytes(progress.total)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-400">{formatBytes(f.size)}</span>
+                          )}
+                        </div>
+                        <button 
+                          onClick={() => removeFile(i)} 
+                          disabled={uploading}
+                          className="bg-transparent border-none cursor-pointer text-slate-500 ml-3 p-0 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                      {progress !== undefined && (
+                        <div className="absolute bottom-0 left-0 h-full rounded-md bg-green-500/20 transition-all" style={{ width: `${percentage}%` }}></div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 

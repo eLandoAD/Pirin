@@ -22,14 +22,24 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
+    const type = params.get("type");
     const path = window.location.pathname;
 
-    if (token && path === "/reset-password") {
-      // è un link di reset password — apri il modal
+    if (token && type === "verify") {
+      // Link di verifica email — verifica direttamente
+      fetch(`${BASE_URL}/verify?token=${token}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setVerifyMessage(data.message || "Email verificata!");
+          window.history.replaceState({}, "", "/");
+        })
+        .catch(() => setVerifyMessage("Errore durante la verifica."));
+    } else if (token && path === "/reset-password") {
+      // Link di reset password — apri il modal
       setResetToken(token);
       window.history.replaceState({}, "", "/");
     } else if (token) {
-      // è un link di verifica email
+      // Link generico di verifica (fallback per compatibilità)
       fetch(`${BASE_URL}/verify?token=${token}`)
         .then((res) => res.json())
         .then((data) => {
