@@ -1,193 +1,185 @@
 # SecureVault — Encrypted File Storage
 
-> **Intern Project Brief.** This is a competitive build. Three teams are building the same
-> specification. The strongest implementation wins. Read this entire document before writing
-> any code.
+A web application for storing files with end-to-end encryption (E2EE).  
+Files are encrypted **in the browser** before upload and decrypted **in the browser** after download. The server stores only ciphertext and can never read your files.
 
 ---
 
-## 1. What you are building
+## Tech Stack
 
-A web application for **storing files securely with end-to-end encryption (E2EE)**.
-
-The core idea: a user can upload files and organize them into folders, but the server can
-**never** read the contents of those files. Files are encrypted *before* they leave the
-browser and decrypted *only* after they are downloaded back into the browser. Even someone
-with full access to your database and disk should see nothing but ciphertext.
-
-This is a real, non-trivial engineering problem. Getting encryption *subtly* wrong is worse
-than not having it, because it creates a false sense of security. A large part of how you
-will be judged is whether your encryption is **actually** end-to-end.
+| Layer | Technology |
+|-------|------------|
+| Backend | Java 25 + Spring Boot 4 |
+| Frontend | React 19 + Vite + Tailwind CSS |
+| Database | MySQL |
+| Encryption | Web Crypto API (AES-GCM 256, PBKDF2) |
 
 ---
 
-## 2. Tech stack
+## Prerequisites
 
-| Layer | Technology | Choice |
-|-------|-----------|--------|
-| Backend | **Java + Spring Boot** | Fixed — required for all teams |
-| Frontend | **React or Angular** | Your team's choice |
-| Database | Your choice (PostgreSQL, MySQL, H2, etc.) | Your team's choice |
-| File blob storage | Local filesystem or object storage | Your team's choice |
-
-The backend is fixed so that all teams can be compared fairly. The frontend is your call —
-choose the one your team is strongest in and be ready to justify the decision.
+- Java 25
+- Node.js >= 18
+- MySQL running on `localhost:3306`
+- A GitHub Codespace **or** local environment
 
 ---
 
-## 3. Core requirements
+## 1. Database Setup
 
-These are the **must-have** features. Aim to have all of them working by the end of the
-sprint.
+Create the database before starting the backend:
 
-### 3.1 Authentication
-- **Email sign-up** with a username/email and password.
-- **Email verification** — a new account must confirm via a link or code sent to their email
-  before it becomes active. (For local development you may "send" the email by logging the
-  link to the console or writing it to a file — but the *flow* must exist.)
-- **Login / logout** with proper session handling (JWT or server-side sessions).
-- **Password reset** flow. ⚠️ Read section 4 carefully — password reset interacts badly with
-  encryption if you are not careful.
+```sql
+CREATE DATABASE secure_files;
+```
 
-### 3.2 File storage
-- **Upload** a file.
-- **Download** a file (and successfully decrypt it back to its original contents).
-- **Rename** a file.
-- **Delete** a file.
-- The server must store **only ciphertext** — never the original file bytes, never the
-  plaintext encryption key.
-
-### 3.3 End-to-end encryption (the heart of the project)
-- Encryption and decryption happen **client-side**, in the browser.
-- The server stores encrypted blobs and has no ability to decrypt them.
-- Your team must **document your key-management design** (see section 4) in a file called
-  `SECURITY.md` in your repo. This document is part of your score.
-
-### 3.4 Folders
-- **Create, rename, and delete** folders.
-- Folders can be **nested** (a folder inside a folder).
-- **Move** a file from one folder to another.
-- **Breadcrumb navigation** so the user can see and click their way back up the folder path.
-
-### 3.5 Basic UX
-- A clear file list or grid view.
-- Upload progress feedback.
-- Sensible empty states ("This folder is empty").
-- Error handling — the app should not crash or hang on a failed upload, wrong password, etc.
+The schema is generated automatically by Hibernate (`ddl-auto=update`) on first run.
 
 ---
 
-## 4. The hard part: key management
+## 2. Backend Setup
 
-This is where teams will separate. Read this section slowly.
+Navigate to the backend folder:
 
-**The goal:** the server must never be able to decrypt a user's files. That means the
-encryption key cannot simply live on the server in plaintext.
+```bash
+cd Pirin
+```
 
-**The standard approach** (you are free to improve on it, but understand it first):
+Configure `src/main/resources/application.properties`:
 
-1. When a user signs up, derive a **key-encryption key (KEK)** from their password using a
-   slow password-hashing function — **Argon2** or **PBKDF2**, never a plain hash like SHA-256.
-2. Generate a random **data key (DEK)** for the user. This is the key that actually encrypts
-   their files.
-3. Encrypt the DEK using the KEK. Store **only the encrypted DEK** on the server.
-4. To work with files: the browser takes the password → derives the KEK → decrypts the DEK →
-   uses the DEK to encrypt/decrypt files. The server never sees the password-derived KEK or
-   the plaintext DEK.
-5. Use a well-established symmetric cipher for the files themselves — **AES-GCM** is the
-   expected choice. Do not invent your own.
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/secure_files
+spring.datasource.username=root
+spring.datasource.password=root
 
-**⚠️ The password-reset trap.** If your encryption key is derived from the password, then
-changing the password naively changes the key — and now every previously uploaded file is
-**permanently unrecoverable**. This is a real consequence of real E2EE. A strong solution
-re-encrypts the stored DEK under the new password (you do *not* re-encrypt every file — only
-the small DEK). How you handle this is a key differentiator. Think it through before you
-build the reset flow.
+jwt.secret=your-secret-key-at-least-32-characters-long
+jwt.expiration-ms=86400000
 
-**Do not:**
-- Send the password or any derived key to the server in a way the server could store or log.
-- Encrypt files on the server "for convenience." That defeats the entire project.
-- Roll your own cipher. Use vetted libraries (Web Crypto API in the browser is your friend).
+storage.path=uploads
+app.frontend-url=http://localhost:5173
+```
 
-You do **not** have to use the exact scheme above. If your team has a better, well-reasoned
-design, document it in `SECURITY.md` and defend it. Originality with sound reasoning scores
-well.
+> **GitHub Codespaces**: set `app.frontend-url` to your Codespace frontend URL (e.g. `https://<name>-5173.app.github.dev`) and make sure port 8080 is set to **Public** in the Ports tab.
+
+Run the backend:
+
+```bash
+./gradlew bootRun
+```
+
+The server starts on `http://localhost:8080`.
 
 ---
 
-## 5. Suggested build order (milestones)
+## 3. Frontend Setup
 
-You have limited time. Build in this order so that you always have something working to demo.
+Navigate to the frontend folder:
 
-1. **Project skeleton** — Spring Boot backend runs, frontend runs, they talk to each other.
-2. **Authentication** — sign-up, email verification, login, logout.
-3. **File storage (unencrypted first)** — get upload / download / rename / delete working
-   end-to-end. Prove the plumbing works *before* adding encryption.
-4. **Encryption** — add client-side encryption/decryption on top of working storage.
-5. **Folders** — create/rename/delete/nest, move files, breadcrumbs.
-6. **Password reset** — including the key re-encryption handling from section 4.
-7. **Polish** — UX, error handling, empty states, progress indicators.
-8. **Stretch goals** — only after everything above works.
+```bash
+cd frontend
+```
 
-> **Tip:** Get step 3 fully working before step 4. Debugging a broken upload *and* broken
-> encryption at the same time is painful. Add encryption only once plain storage is solid.
+Install dependencies:
 
----
+```bash
+npm install
+```
 
-## 6. Stretch goals (for extra credit)
+Configure the backend URL in `vite.config.js`:
 
-Attempt these **only after every core requirement works.**
+```js
+server: {
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8080',  // or your Codespace backend URL
+      changeOrigin: true,
+    },
+  },
+},
+```
 
-- **True client-side E2EE with device-key recovery** — let a user log in on a second device
-  and still decrypt their files.
-- **File sharing** — share an encrypted file with another user (this is genuinely hard with
-  E2EE — think about how the recipient gets the key).
-- **Search** across file and folder names.
-- **File previews** (images, text) — decrypted in-browser.
-- **Drag-and-drop** uploads and moves.
-- **Storage quota** per user.
+Run the frontend:
 
----
+```bash
+npm run dev
+```
 
-## 7. How you will be judged
-
-| Criterion | Weight | What we look for |
-|-----------|--------|------------------|
-| **Security correctness** | 35% | Is the E2EE real? Is the server truly blind to plaintext? Sound key derivation? Sensible password-reset handling? |
-| **Functionality** | 25% | Do auth, folders, and file operations all work end-to-end? |
-| **Code quality** | 15% | Structure, readability, tests, sensible commits, clean Git history. |
-| **UX & polish** | 15% | Is it usable? Clean? Does it handle errors gracefully? |
-| **Design defense** | 10% | Can your team explain your key-management design and the tradeoffs you made? |
-
-A working app with **real** encryption beats a fancy-looking app with fake encryption. Spend
-your effort accordingly.
+The app is available at `http://localhost:5173`.
 
 ---
 
-## 8. Working agreement & logistics
+## 4. Project Structure
 
-- **Daily standup** — 15 minutes each morning. Say what you did, what you're doing, and what's
-  blocking you.
-- **Git hygiene** — work on branches, open pull requests, review each other's code before
-  merging. **No direct commits to `main`** without a review.
-- **Ask early** — if you are stuck for more than ~30 minutes, ask your covering mentor. Being
-  stuck silently helps no one.
-- **Document as you go** — your `README.md` (how to run it) and `SECURITY.md` (how encryption
-  works) are part of your deliverable, not an afterthought.
-
----
-
-## 9. Deliverables
-
-By the end of the sprint, your repo should contain:
-
-1. The working application (backend + frontend).
-2. A **`README.md`** with clear setup instructions — how to run the backend, the frontend, and
-   any database setup. A reviewer should be able to clone and run it.
-3. A **`SECURITY.md`** explaining your encryption and key-management design, and how you handle
-   password reset.
-4. A short list of what's done, what's partial, and what you'd do with more time.
+```
+Pirin/
+├── backend/
+│   └── src/main/java/com/pirin/
+│       ├── controller/       # REST endpoints
+│       ├── dto/              # Request/Response objects
+│       ├── entity/           # JPA entities (User, FileRecord, FolderRecord, ...)
+│       ├── repository/       # Spring Data repositories
+│       ├── security/         # JWT filter, Security config
+│       └── service/          # Business logic (Auth, JWT, FileStorage)
+│
+└── frontend/
+    └── src/
+        ├── api/              # Fetch calls to backend (auth, files, folders, upload, download)
+        ├── components/       # React components (Folders, Upload, NavBar, ...)
+        ├── crypto/           # Web Crypto API (key derivation, encrypt, decrypt)
+        └── hooks/            # useFolders hook
+```
 
 ---
 
-Good luck. Build something you'd trust with your own files.
+## 5. Features
+
+- **Sign up / Login / Logout** with JWT authentication
+- **Email verification** — link printed to console in development
+- **Password reset** — link printed to console in development
+- **End-to-end encrypted file upload** — files encrypted in the browser with AES-GCM before leaving the device
+- **Encrypted file download** — decrypted in the browser after download
+- **Rename / Delete files**
+- **Folder management** — create, rename, delete (with cascade), nested folders
+- **Move files between folders** — Drive-style picker
+- **Breadcrumb navigation**
+- **Dark / Light mode**
+
+---
+
+## 6. Encryption Overview
+
+See [`SECURITY.md`](./SECURITY.md) for the full key-management design.
+
+In short:
+
+1. At sign-up the browser derives a **KEK** from the password using PBKDF2 (150 000 iterations, SHA-256)
+2. A random **DEK** (32 bytes) is generated and encrypted with the KEK
+3. Only the encrypted DEK is stored on the server — the server never sees the plaintext DEK or the password
+4. At upload: browser derives KEK → decrypts DEK → encrypts file with AES-GCM → sends ciphertext
+5. At download: browser derives KEK → decrypts DEK → decrypts file with AES-GCM
+
+---
+
+## 7. What's Done / Partial / TODO
+
+### Done
+- Authentication (sign-up, email verification flow, login, logout, JWT)
+- Password change with DEK re-encryption
+- E2EE file upload and download (AES-GCM 256)
+- File operations: rename, delete, move between folders
+- Folder operations: create, rename, delete (cascade), nested, breadcrumb
+- Dark / Light mode
+- `SECURITY.md`
+
+### Partial
+- Email sending: flow exists, links printed to console — SMTP not configured with real credentials
+- Password reset: backend flow complete, frontend page missing
+- Upload progress feedback: not implemented
+
+### With more time
+- Real SMTP integration (e.g. SendGrid, Mailtrap)
+- Upload progress bar
+- File preview (images, text) decrypted in-browser
+- File sharing between users
+- Storage quota per user
+- Search across file and folder names
