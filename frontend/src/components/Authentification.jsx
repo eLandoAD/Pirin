@@ -52,7 +52,7 @@ function LoginView({ onSwitch, onClose, onLoginSuccess }) {
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center">
             <label htmlFor="password" className="text-[13px] font-medium text-slate-800">Password</label>
-            <button type="button" onClick={() => onSwitch("forgot")} className="bg-transparent border-none text-[11px] text-slate-400 cursor-pointer p-0">Password forgotten?</button>
+            <button type="button" onClick={() => onSwitch("forgot")} className="bg-transparent border-none text-[11px] text-slate-400 cursor-pointer p-0">Forgotten password?</button>
           </div>
           <input id="password" name="password" type="password" value={form.password} onChange={update} required
             className="rounded-md border border-slate-300 px-3 py-2 text-[13px] outline-none bg-slate-50 text-slate-900 focus:border-green transition-colors" />
