@@ -123,7 +123,7 @@ function VerifyView({ onSwitch }) {
         We've sent you a verification link.<br />
         Click the link to activate your account.
       </p>
-      <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-[13px] text-teal-700 cursor-pointer font-semibold">
+      <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-[13px] text-green-dark cursor-pointer font-semibold">
         Return to login
       </button>
     </div>
@@ -157,7 +157,7 @@ function ForgotView({ onSwitch }) {
         <p className="text-[13px] text-slate-500 mb-6">
           If your email address is registered, you will receive a reset link.
         </p>
-        <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-[13px] text-teal-700 cursor-pointer font-semibold">
+        <button onClick={() => onSwitch("login")} className="bg-transparent border-none text-[13px] text-green-dark cursor-pointer font-semibold">
           Return to login
         </button>
       </div>
@@ -218,7 +218,7 @@ function ResetView({ resetToken, onClose }) {
         <p className="text-[13px] text-slate-500 mb-6">
           You can now log in with your new password.
         </p>
-        <button onClick={onClose} className="bg-transparent border-none text-[13px] text-teal-700 cursor-pointer font-semibold">
+        <button onClick={onClose} className="bg-transparent border-none text-[13px] text-green-dark cursor-pointer font-semibold">
           Go to login
         </button>
       </div>

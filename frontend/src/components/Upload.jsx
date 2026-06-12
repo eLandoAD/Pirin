@@ -102,7 +102,7 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
               onDrop={handleDrop}
               onClick={() => inputRef.current.click()}
               className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all mb-4 ${
-                dragging ? "border-green bg-teal-50/50" : "border-slate-300 bg-slate-50"
+                dragging ? "border-green bg-green-50/50" : "border-slate-300 bg-slate-50"
               }`}
             >
               <Upload size={28} className="mx-auto mb-2 text-slate-400" />

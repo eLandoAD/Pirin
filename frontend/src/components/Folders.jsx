@@ -165,7 +165,7 @@ function Folders({ showModal, onCloseModal }) {
                   />
                 ) : (
                   <button onClick={() => openFolder(folder.id)} className={`flex gap-2 text-sm font-medium text-slate-800 text-left truncate w-full ${viewMode === "grid" ? "flex-col items-start" : "items-center"}`}>
-                    <Folder size={viewMode === "grid" ? 24 : 16} className="text-teal-600 shrink-0" />
+                    <Folder size={viewMode === "grid" ? 24 : 16} className="text-green shrink-0" />
                     <span className="truncate w-full">{folder.name}</span>
                   </button>
                 )}

@@ -16,6 +16,8 @@ import com.pirin.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,6 +30,7 @@ public class AuthService {
     private final PasswordResetTokenRepository resetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final JavaMailSender mailSender;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -37,13 +40,14 @@ public class AuthService {
             EmailVerificationTokenRepository emailTokenRepository,
             PasswordResetTokenRepository resetTokenRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
-    ) {
+            JwtService jwtService,
+            JavaMailSender mailSender) {
         this.userRepository = userRepository;
         this.emailTokenRepository = emailTokenRepository;
         this.resetTokenRepository = resetTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.mailSender = mailSender;
     }
 
     public MessageResponse register(RegisterRequest request) {
@@ -75,7 +79,9 @@ public class AuthService {
         emailTokenRepository.save(token);
 
         String verifyLink = frontendUrl + "/verify?token=" + token.getToken();
-        System.out.println("LINK VERIFICA EMAIL: " + verifyLink);
+        sendEmail(user.getEmail(), "Verifica il tuo account SecureVault",
+                "Clicca il link per verificare il tuo account:\n\n" + verifyLink +
+                        "\n\nIl link scade tra 24 ore.");
 
         return new MessageResponse("Account creato. Controlla la tua email per verificarlo.");
     }
@@ -111,10 +117,9 @@ public class AuthService {
                 jwt,
                 user.getUsername(),
                 user.getEmail(),
-                user.getEncryptedDek(), 
-                user.getDekSalt(),      
-                user.getDekIv()        
-        );
+                user.getEncryptedDek(),
+                user.getDekSalt(),
+                user.getDekIv());
     }
 
     public MessageResponse logout() {
@@ -130,7 +135,9 @@ public class AuthService {
             resetTokenRepository.save(token);
 
             String resetLink = frontendUrl + "/reset-password?token=" + token.getToken();
-            System.out.println("LINK RESET PASSWORD: " + resetLink);
+            sendEmail(user.getEmail(), "Reset password SecureVault",
+                    "Clicca il link per reimpostare la tua password:\n\n" + resetLink +
+                            "\n\nIl link scade tra 30 minuti.");
         });
         return new MessageResponse("Se l'email è registrata, riceverai un link per il reset.");
     }
@@ -151,7 +158,8 @@ public class AuthService {
         token.setUsedAt(LocalDateTime.now());
         resetTokenRepository.save(token);
 
-        return new MessageResponse("Password aggiornata. Nota: i file cifrati precedentemente non sono più accessibili.");
+        return new MessageResponse(
+                "Password aggiornata. Nota: i file cifrati precedentemente non sono più accessibili.");
     }
 
     public MessageResponse changePassword(User currentUser, PasswordChangeRequest request) {
@@ -172,5 +180,17 @@ public class AuthService {
 
         userRepository.save(user);
         return new MessageResponse("Password aggiornata con successo.");
+    }
+
+    private void sendEmail(String to, String subject, String text) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(text);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Errore invio email: " + e.getMessage());
+        }
     }
 }

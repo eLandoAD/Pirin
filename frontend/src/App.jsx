@@ -4,6 +4,7 @@ import SideMenu from "./components/SideMenu";
 import Folders from "./components/Folders";
 import BottomNavigation from "./components/BottomNavigation";
 import SettingsModal from "./components/SettingsModal";
+import Authentification from "./components/Authentification";
 
 const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api/auth";
 

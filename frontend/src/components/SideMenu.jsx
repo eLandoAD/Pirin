@@ -44,7 +44,7 @@ export default function SideMenu({ onCreateFolder, onOpenSettings, onUploadSucce
           {!collapsed && (
             <div>
               <h1 className="text-[21px] font-semibold leading-none text-black dark:text-white">SecureVault</h1>
-              <p className="mt-1.5 text-[11px] font-medium tracking-[0.08em] text-teal-800 dark:text-teal-400">E2EE ACTIVE</p>
+              <p className="mt-1.5 text-[11px] font-medium tracking-[0.08em] text-green-dark dark:text-green">E2EE ACTIVE</p>
             </div>
           )}
         </div>
