@@ -1,27 +1,21 @@
 import { useState } from "react";
-import { Bell, Menu, LogOut, User } from "lucide-react";
+import { Bell, LogOut, User } from "lucide-react";
 import Authentification from "./Authentification";
-import { logout, getToken } from "../api/auth";
+import { logout } from "../api/auth";
 
-function NavBar({ onMenuOpen, onLoginSuccess }) {
+function NavBar({ onLoginSuccess, onLogout, user }) {
   const [modal, setModal] = useState(null);
-
-  const [user, setUser] = useState(() => {
-    const token = getToken();
-    if (!token) return null;
-    const username = localStorage.getItem("username");
-    return username ? { username } : null;
-  });
-
-  function handleLoginSuccess(data) {
-    setUser(data);
-    onLoginSuccess(data);
-  }
 
   async function handleLogout() {
     await logout();
     localStorage.removeItem("username");
-    setUser(null);
+    localStorage.removeItem("email");
+    if (onLogout) onLogout();
+  }
+
+  function handleLoginSuccess(data) {
+    setModal(null);
+    if (onLoginSuccess) onLoginSuccess(data);
   }
 
   return (

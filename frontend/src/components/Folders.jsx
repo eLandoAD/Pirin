@@ -4,7 +4,7 @@ import { useFolders } from "../hooks/useFolders";
 import { fetchFiles, renameFileApi, deleteFileApi } from "../api/files";
 import { downloadAndDecrypt } from "../api/download";
 
-function Folders({ showModal, onCloseModal }) {
+function Folders({ showModal, onCloseModal, fileRefreshKey, user }) {
   const {
     currentFolders,
     breadcrumb,
@@ -28,8 +28,12 @@ function Folders({ showModal, onCloseModal }) {
   const [renameFileValue, setRenameFileValue] = useState("");
 
   useEffect(() => {
-    loadFiles();
-  }, []);
+    if (user) {
+      loadFiles();
+    } else {
+      setFiles([]);
+    }
+  }, [fileRefreshKey, user]);
 
   async function loadFiles() {
     setFilesLoading(true);
