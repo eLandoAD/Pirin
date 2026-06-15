@@ -10,19 +10,22 @@ import NavBar from "./components/NavBar";
 const BASE_URL = "/api/auth";
 
 function App() {
-  const [showFolderModal, setShowFolderModal]   = useState(false);
-  const [showSettings, setShowSettings]         = useState(false);
-  const [user, setUser]                         = useState(null);
-  const [fileRefreshKey, setFileRefreshKey]     = useState(0);
-  const [currentFolderId, setCurrentFolderId]   = useState(null); 
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
-  const [verifyMessage, setVerifyMessage]       = useState("");
-  const [resetToken, setResetToken]             = useState(null);
+  const [showFolderModal, setShowFolderModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [user, setUser] = useState(null);
+  const [fileRefreshKey, setFileRefreshKey] = useState(0);
+  const [currentFolderId, setCurrentFolderId] = useState(null); 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("darkMode") === "true"
+  );
+  const [verifyMessage, setVerifyMessage] = useState("");
+  const [resetToken, setResetToken] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token  = params.get("token");
-    const path   = window.location.pathname;
+    const token = params.get("token");
+    const path = window.location.pathname;
 
     if (token && path === "/reset-password") {
       setResetToken(token);
@@ -39,19 +42,21 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const token    = localStorage.getItem("jwt");
+    const token = localStorage.getItem("jwt");
     const username = localStorage.getItem("username");
-    const email    = localStorage.getItem("email");
+    const email = localStorage.getItem("email");
     if (token && username) setUser({ token, username, email });
   }, []);
 
   function handleLoginSuccess(data) {
     setUser(data);
     if (data.username) localStorage.setItem("username", data.username);
-    if (data.email)    localStorage.setItem("email",    data.email);
+    if (data.email) localStorage.setItem("email", data.email);
   }
 
-  function handleLogout() { setUser(null); }
+  function handleLogout() {
+    setUser(null);
+  }
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -68,17 +73,25 @@ function App() {
   return (
     <>
       {!user ? (
-        <Landing onLoginSuccess={handleLoginSuccess} onLogout={handleLogout} user={user} />
+        <Landing
+          onLoginSuccess={handleLoginSuccess}
+          onLogout={handleLogout}
+          user={user}
+        />
       ) : (
         <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
           <SideMenu
             onCreateFolder={() => setShowFolderModal(true)}
             onOpenSettings={() => setShowSettings(true)}
-            onUploadSuccess={() => setFileRefreshKey(k => k + 1)}
+            onUploadSuccess={() => setFileRefreshKey((k) => k + 1)}
             currentFolderId={currentFolderId}
           />
           <div className="flex min-w-0 flex-1 flex-col">
-            <NavBar onLogout={handleLogout} user={user} />
+            <NavBar 
+              onLogout={handleLogout} 
+              user={user} 
+              onSearch={setSearchQuery} 
+            />
 
             {verifyMessage && (
               <div className="bg-green-50 border-b border-green-200 px-6 py-2 text-sm text-green-700 flex justify-between">
@@ -95,6 +108,8 @@ function App() {
                 onCloseModal={() => setShowFolderModal(false)}
                 fileRefreshKey={fileRefreshKey}
                 onFolderChange={setCurrentFolderId}
+                user={user}
+                searchQuery={searchQuery}
               />
             </main>
             <BottomNavigation onOpenSettings={() => setShowSettings(true)} />
@@ -103,7 +118,11 @@ function App() {
       )}
 
       {showSettings && (
-        <SettingsModal darkMode={darkMode} onToggle={toggleDarkMode} onClose={() => setShowSettings(false)} />
+        <SettingsModal
+          darkMode={darkMode}
+          onToggle={toggleDarkMode}
+          onClose={() => setShowSettings(false)}
+        />
       )}
 
       {resetToken && (

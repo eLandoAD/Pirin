@@ -1,7 +1,7 @@
 import { Bell, LogOut, User } from "lucide-react";
 import { logout } from "../api/auth";
 
-function NavBar({ onLogout, user }) {
+function NavBar({ onLogout, user, onSearch }) {
 
   async function handleLogout() {
     await logout();
@@ -15,6 +15,7 @@ function NavBar({ onLogout, user }) {
       <input
         type="text"
         placeholder="Search..."
+        onChange={(e) => onSearch?.(e.target.value)}
         className="w-full md:w-[30%] p-2 pl-4 border rounded-lg border-slate-700 outline-none focus:border-green bg-primary-white text-sm placeholder-slate-500"
       />
 
