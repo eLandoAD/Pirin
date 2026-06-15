@@ -14,7 +14,7 @@ import { fetchFiles, renameFileApi, deleteFileApi, moveFileApi } from "../api/fi
 import { downloadAndDecrypt } from "../api/download";
 import FolderPicker from "./FolderPicker";
 
-function Folders({ showModal, onCloseModal }) {
+function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = "" }) {
   const {
     folders, currentFolders, breadcrumb,
     createFolder, renameFolder, deleteFolder,
@@ -164,7 +164,14 @@ function Folders({ showModal, onCloseModal }) {
   }
 
   const currentFolderId = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].id : null;
-  const visibleFiles = files.filter((f) => (f.folderId ?? null) === currentFolderId);
+
+  // Filtra file e cartelle in base alla searchQuery
+  const visibleFiles = files
+    .filter((f) => (f.folderId ?? null) === currentFolderId)
+    .filter((f) => f.filename.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  const visibleFolders = currentFolders
+    .filter((f) => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="rounded-lg border-2 border-slate-300 bg-primary-white p-4 w-full">
@@ -185,15 +192,17 @@ function Folders({ showModal, onCloseModal }) {
       {/* Cartelle */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-slate-700">Folders</h3>
-        {currentFolders.length === 0 ? (
+        {visibleFolders.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-slate-200 py-8 text-slate-400">
             <Folder size={40} strokeWidth={1.2} className="mb-3" />
-            <p className="text-sm font-medium">No folders here yet</p>
-            <p className="text-xs mt-1">Click "Create Folder" to get started</p>
+            <p className="text-sm font-medium">
+              {searchQuery ? "No folders match your search" : "No folders here yet"}
+            </p>
+            {!searchQuery && <p className="text-xs mt-1">Click "Create Folder" to get started</p>}
           </div>
         ) : (
           <ul className="flex flex-col gap-2">
-            {currentFolders.map((folder) => (
+            {visibleFolders.map((folder) => (
               <li key={folder.id} className="flex items-center justify-between rounded-md px-3 py-2 hover:bg-slate-50">
                 {renamingId === folder.id ? (
                   <input autoFocus value={renameValue}
@@ -224,7 +233,9 @@ function Folders({ showModal, onCloseModal }) {
         {!filesLoading && visibleFiles.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-slate-200 py-8 text-slate-400">
             <File size={36} strokeWidth={1.2} className="mb-3" />
-            <p className="text-sm font-medium">No files here</p>
+            <p className="text-sm font-medium">
+              {searchQuery ? "No files match your search" : "No files here"}
+            </p>
           </div>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -278,7 +289,7 @@ function Folders({ showModal, onCloseModal }) {
         </div>
       )}
 
-      {/* FolderPicker*/}
+      {/* FolderPicker */}
       {movingFile && (
         <FolderPicker
           folders={folders}
