@@ -14,7 +14,7 @@ import { fetchFiles, renameFileApi, deleteFileApi, moveFileApi } from "../api/fi
 import { downloadAndDecrypt } from "../api/download";
 import FolderPicker from "./FolderPicker";
 
-import { useFolders } from "../hooks/useFolders"; 
+import { useFolders } from "../hooks/useFolders";
 
 function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange, user, searchQuery = "" }) {
   const {
@@ -23,18 +23,18 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange, user
     openFolder, navigateTo, loading, error,
   } = useFolders();
 
-  const [newFolderName, setNewFolderName]     = useState("");
-  const [renamingId, setRenamingId]           = useState(null);
-  const [renameValue, setRenameValue]         = useState("");
-  const [files, setFiles]                     = useState([]);
-  const [filesLoading, setFilesLoading]       = useState(false);
-  const [filesError, setFilesError]           = useState("");
-  const [renamingFileId, setRenamingFileId]   = useState(null);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [files, setFiles] = useState([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [filesError, setFilesError] = useState("");
+  const [renamingFileId, setRenamingFileId] = useState(null);
   const [renameFileValue, setRenameFileValue] = useState("");
-  const [movingFile, setMovingFile]           = useState(null);
-  const [previewFile, setPreviewFile]         = useState(null);
-  const [previewUrl, setPreviewUrl]           = useState(null);
-  const [previewType, setPreviewType]         = useState("");
+  const [movingFile, setMovingFile] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewType, setPreviewType] = useState("");
 
   const currentFolderId = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].id : null;
 
@@ -85,8 +85,8 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange, user
     if (!password) return;
     try {
       const blob = await downloadAndDecrypt(file.id, password, { iv: file.iv });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
       a.href = url; a.download = file.filename; a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
@@ -169,7 +169,7 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange, user
   return (
     <div className="rounded-lg border-2 border-slate-300 bg-primary-white p-4 w-full">
       {loading && <p className="text-sm text-slate-400">Loading...</p>}
-      {error   && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <nav className="mb-4 flex items-center gap-1 text-sm text-slate-500">
         <button onClick={() => handleNavigate(null)} className="hover:text-slate-800 cursor-pointer">Root</button>
@@ -198,9 +198,9 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange, user
                 {renamingId === folder.id ? (
                   <input autoFocus value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
-                    onKeyDown={(e) => { 
-                      if (e.key === "Enter") { renameFolder(folder.id, renameValue); setRenamingId(null); } 
-                      if (e.key === "Escape") setRenamingId(null); 
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { renameFolder(folder.id, renameValue); setRenamingId(null); }
+                      if (e.key === "Escape") setRenamingId(null);
                     }}
                     onBlur={() => { renameFolder(folder.id, renameValue); setRenamingId(null); }}
                     className="rounded border border-slate-300 px-2 py-0.5 text-sm" />
@@ -222,7 +222,7 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange, user
       <section className="mt-6 border-t border-slate-200 pt-4">
         <h3 className="mb-3 text-sm font-semibold text-slate-700">Files</h3>
         {filesLoading && <p className="text-sm text-slate-400">Caricamento file...</p>}
-        {filesError   && <p className="text-sm text-red-500">{filesError}</p>}
+        {filesError && <p className="text-sm text-red-500">{filesError}</p>}
         {!filesLoading && visibleFiles.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-slate-200 py-8 text-slate-400">
             <File size={36} strokeWidth={1.2} className="mb-3" />
@@ -243,7 +243,12 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange, user
                       onBlur={() => commitRenameFile(file.id)}
                       className="rounded border border-slate-300 px-2 py-0.5 text-sm" />
                   ) : (
-                    <span className="truncate">{file.filename}</span>
+                    <button
+                      onClick={() => handlePreview(file)}
+                      className="truncate hover:text-blue-500 hover:underline cursor-pointer text-left font-medium"
+                    >
+                      {file.filename}
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-2">
