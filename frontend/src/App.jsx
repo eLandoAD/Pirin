@@ -7,63 +7,52 @@ import Authentification from "./components/Authentification";
 import Landing from "./pages/landing";
 import NavBar from "./components/NavBar";
 
-const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api/auth";
+const BASE_URL = "/api/auth";
 
 function App() {
-  const [showFolderModal, setShowFolderModal] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [user, setUser] = useState(null);
-  const [fileRefreshKey, setFileRefreshKey] = useState(0);
+  const [showFolderModal, setShowFolderModal]   = useState(false);
+  const [showSettings, setShowSettings]         = useState(false);
+  const [user, setUser]                         = useState(null);
+  const [fileRefreshKey, setFileRefreshKey]     = useState(0);
+  const [currentFolderId, setCurrentFolderId]   = useState(null);
+  const [searchQuery, setSearchQuery]           = useState("");
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("darkMode") === "true"
   );
   const [verifyMessage, setVerifyMessage] = useState("");
-  const [resetToken, setResetToken] = useState(null);
+  const [resetToken, setResetToken]       = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const type = params.get("type");
-    const path = window.location.pathname;
+    const token  = params.get("token");
+    const path   = window.location.pathname;
 
-    if (token && type === "verify") {
-      // Link di verifica email — verifica direttamente
-      fetch(`${BASE_URL}/verify?token=${token}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setVerifyMessage(data.message || "Email verificata!");
-          window.history.replaceState({}, "", "/");
-        })
-        .catch(() => setVerifyMessage("Errore durante la verifica."));
-    } else if (token && path === "/reset-password") {
-      // Link di reset password — apri il modal
+    if (token && path === "/reset-password") {
       setResetToken(token);
       window.history.replaceState({}, "", "/");
     } else if (token) {
-      // Link generico di verifica (fallback per compatibilità)
       fetch(`${BASE_URL}/verify?token=${token}`)
         .then((res) => res.json())
         .then((data) => {
-          setVerifyMessage(data.message || "Email verificata!");
+          setVerifyMessage(data.message || "Email verified!");
           window.history.replaceState({}, "", "/");
         })
-        .catch(() => setVerifyMessage("Errore durante la verifica."));
+        .catch(() => setVerifyMessage("Error during verification."));
     }
   }, []);
 
+  // Ripristina sessione da sessionStorage (funziona solo se il tab è ancora aperto)
   useEffect(() => {
-    const token = localStorage.getItem("jwt");
-    const username = localStorage.getItem("username");
-    const email = localStorage.getItem("email");
-    if (token && username) {
-      setUser({ token, username, email });
-    }
+    const token    = sessionStorage.getItem("jwt");
+    const username = sessionStorage.getItem("username");
+    const email    = sessionStorage.getItem("email");
+    if (token && username) setUser({ token, username, email });
   }, []);
 
   function handleLoginSuccess(data) {
     setUser(data);
-    if (data.username) localStorage.setItem("username", data.username);
-    if (data.email) localStorage.setItem("email", data.email);
+    // Nota: i dati sensibili vengono salvati in sessionStorage da auth.js → login()
+    // Qui non salviamo nulla in localStorage
   }
 
   function handleLogout() {
@@ -71,17 +60,13 @@ function App() {
   }
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
   function toggleDarkMode() {
     setDarkMode((prev) => {
       const next = !prev;
-      localStorage.setItem("darkMode", next);
+      localStorage.setItem("darkMode", next); // darkMode non è sensibile, va bene in localStorage
       return next;
     });
   }
@@ -89,30 +74,35 @@ function App() {
   return (
     <>
       {!user ? (
-        // Non loggato — mostra landing
-        <Landing
-          onLoginSuccess={handleLoginSuccess}
-          onLogout={handleLogout}
-          user={user}
-        />
+        <Landing onLoginSuccess={handleLoginSuccess} onLogout={handleLogout} user={user} />
       ) : (
-        // Loggato — mostra vault
         <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
           <SideMenu
             onCreateFolder={() => setShowFolderModal(true)}
             onOpenSettings={() => setShowSettings(true)}
-            onUploadSuccess={() => setFileRefreshKey(k => k + 1)}
+            onUploadSuccess={() => setFileRefreshKey((k) => k + 1)}
+            currentFolderId={currentFolderId}
           />
           <div className="flex min-w-0 flex-1 flex-col">
-            <NavBar onLogout={handleLogout} user={user} />
+            <NavBar onLogout={handleLogout} user={user} onSearch={setSearchQuery} />
+
+            {verifyMessage && (
+              <div className="bg-green-50 border-b border-green-200 px-6 py-2 text-sm text-green-700 flex justify-between">
+                ✓ {verifyMessage}
+                <button onClick={() => setVerifyMessage("")} className="font-bold">✕</button>
+              </div>
+            )}
+
             <main className="flex-1 overflow-y-auto border-t border-slate-300 p-4 md:p-8 pb-20 lg:pb-8">
               <h1 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Vault Explorer</h1>
               <Folders
-                key={user ? user.username : "guest"}
+                key={user?.username}
                 showModal={showFolderModal}
                 onCloseModal={() => setShowFolderModal(false)}
                 fileRefreshKey={fileRefreshKey}
+                onFolderChange={setCurrentFolderId}
                 user={user}
+                searchQuery={searchQuery}
               />
             </main>
             <BottomNavigation onOpenSettings={() => setShowSettings(true)} />
@@ -121,11 +111,7 @@ function App() {
       )}
 
       {showSettings && (
-        <SettingsModal
-          darkMode={darkMode}
-          onToggle={toggleDarkMode}
-          onClose={() => setShowSettings(false)}
-        />
+        <SettingsModal darkMode={darkMode} onToggle={toggleDarkMode} onClose={() => setShowSettings(false)} />
       )}
 
       {resetToken && (

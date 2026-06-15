@@ -1,7 +1,7 @@
 import { deriveKEK } from "../crypto/key";
 import { authHeader } from "./auth";
 
-const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api";
+const BASE_URL = "/api";
 
 export async function changePassword({ oldPassword, newPassword }) {
   const encryptedDekB64 = localStorage.getItem("encryptedDek");

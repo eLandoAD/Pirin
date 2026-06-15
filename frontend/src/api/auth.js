@@ -1,15 +1,16 @@
-const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api/auth";
+const BASE_URL = "/api/auth";
 
+// Dati sensibili → sessionStorage (spariscono alla chiusura del tab)
 export function saveToken(token) {
-  localStorage.setItem("jwt", token);
+  sessionStorage.setItem("jwt", token);
 }
 
 export function getToken() {
-  return localStorage.getItem("jwt");
+  return sessionStorage.getItem("jwt");
 }
 
 export function removeToken() {
-  localStorage.removeItem("jwt");
+  sessionStorage.removeItem("jwt");
 }
 
 export function authHeader() {
@@ -36,24 +37,30 @@ export async function login(email, password) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Login fallito");
+
+  // Tutto in sessionStorage — sparisce alla chiusura del tab
   saveToken(data.token);
-  if (data.encryptedDek) localStorage.setItem("encryptedDek", data.encryptedDek);
-  if (data.dekSalt)      localStorage.setItem("dekSalt",      data.dekSalt);
-  if (data.dekIv)        localStorage.setItem("dekIv",        data.dekIv);
-  localStorage.setItem("username", data.username);
+  if (data.encryptedDek) sessionStorage.setItem("encryptedDek", data.encryptedDek);
+  if (data.dekSalt)      sessionStorage.setItem("dekSalt",      data.dekSalt);
+  if (data.dekIv)        sessionStorage.setItem("dekIv",        data.dekIv);
+  if (data.username)     sessionStorage.setItem("username",     data.username);
+  if (data.email)        sessionStorage.setItem("email",        data.email);
+
   return data;
 }
 
 export async function logout() {
-  const res = await fetch(`${BASE_URL}/logout`, {
+  await fetch(`${BASE_URL}/logout`, {
     method: "POST",
     headers: { ...authHeader() },
   });
-  removeToken();
-  localStorage.removeItem("encryptedDek");
-  localStorage.removeItem("dekSalt");
-  localStorage.removeItem("dekIv");
-  return res.ok;
+  // Pulisce tutti i dati sensibili
+  sessionStorage.removeItem("jwt");
+  sessionStorage.removeItem("encryptedDek");
+  sessionStorage.removeItem("dekSalt");
+  sessionStorage.removeItem("dekIv");
+  sessionStorage.removeItem("username");
+  sessionStorage.removeItem("email");
 }
 
 export async function forgotPassword(email) {
