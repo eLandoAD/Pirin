@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import NavBar from "./components/NavBar";
 import SideMenu from "./components/SideMenu";
 import Folders from "./components/Folders";
 import BottomNavigation from "./components/BottomNavigation";
 import SettingsModal from "./components/SettingsModal";
 import Authentification from "./components/Authentification";
+import Landing from "./pages/landing";
+import NavBar from "./components/NavBar";
 
 const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api/auth";
 
@@ -50,7 +51,6 @@ function App() {
     }
   }, []);
 
-  // Ripristina utente dal localStorage al refresh
   useEffect(() => {
     const token = localStorage.getItem("jwt");
     const username = localStorage.getItem("username");
@@ -70,7 +70,6 @@ function App() {
     setUser(null);
   }
 
-  // Dark mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -88,38 +87,38 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
-      <SideMenu
-        onCreateFolder={() => setShowFolderModal(true)}
-        onOpenSettings={() => setShowSettings(true)}
-        onUploadSuccess={() => setFileRefreshKey(k => k + 1)}
-      />
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <NavBar onLoginSuccess={handleLoginSuccess} onLogout={handleLogout} user={user} />
-
-        {verifyMessage && (
-          <div style={{ backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", padding: "10px 24px", fontSize: "13px", color: "#166534" }}>
-            ✓ {verifyMessage}{" "}
-            <button onClick={() => setVerifyMessage("")} style={{ background: "none", border: "none", cursor: "pointer", color: "#166534", fontWeight: 600 }}>
-              ✕
-            </button>
-          </div>
-        )}
-
-        <main className="flex-1 overflow-y-auto border-t border-slate-300 p-4 md:p-8 pb-20 lg:pb-8">
-          <h1 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Vault Explorer</h1>
-          <Folders
-            key={user ? user.username : "guest"}
-            showModal={showFolderModal}
-            onCloseModal={() => setShowFolderModal(false)}
-            fileRefreshKey={fileRefreshKey}
-            user={user}
+    <>
+      {!user ? (
+        // Non loggato — mostra landing
+        <Landing
+          onLoginSuccess={handleLoginSuccess}
+          onLogout={handleLogout}
+          user={user}
+        />
+      ) : (
+        // Loggato — mostra vault
+        <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
+          <SideMenu
+            onCreateFolder={() => setShowFolderModal(true)}
+            onOpenSettings={() => setShowSettings(true)}
+            onUploadSuccess={() => setFileRefreshKey(k => k + 1)}
           />
-        </main>
-
-        <BottomNavigation onOpenSettings={() => setShowSettings(true)} />
-      </div>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <NavBar onLogout={handleLogout} user={user} />
+            <main className="flex-1 overflow-y-auto border-t border-slate-300 p-4 md:p-8 pb-20 lg:pb-8">
+              <h1 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Vault Explorer</h1>
+              <Folders
+                key={user ? user.username : "guest"}
+                showModal={showFolderModal}
+                onCloseModal={() => setShowFolderModal(false)}
+                fileRefreshKey={fileRefreshKey}
+                user={user}
+              />
+            </main>
+            <BottomNavigation onOpenSettings={() => setShowSettings(true)} />
+          </div>
+        </div>
+      )}
 
       {showSettings && (
         <SettingsModal
@@ -137,7 +136,7 @@ function App() {
           onLoginSuccess={handleLoginSuccess}
         />
       )}
-    </div>
+    </>
   );
 }
 

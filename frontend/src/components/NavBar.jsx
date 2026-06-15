@@ -1,10 +1,7 @@
-import { useState } from "react";
 import { Bell, LogOut, User } from "lucide-react";
-import Authentification from "./Authentification";
 import { logout } from "../api/auth";
 
-function NavBar({ onLoginSuccess, onLogout, user }) {
-  const [modal, setModal] = useState(null);
+function NavBar({ onLogout, user }) {
 
   async function handleLogout() {
     await logout();
@@ -13,68 +10,36 @@ function NavBar({ onLoginSuccess, onLogout, user }) {
     if (onLogout) onLogout();
   }
 
-  function handleLoginSuccess(data) {
-    setModal(null);
-    if (onLoginSuccess) onLoginSuccess(data);
-  }
-
   return (
-    <>
-      <nav className="bg-primary-white flex items-center p-4 px-6 gap-4">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full md:w-[30%] p-1 pl-3 border rounded-lg border-slate-300 outline-none focus:border-green-dark bg-white text-sm"
-        />
+    <nav className="bg-primary-white flex items-center p-4 px-6 gap-4 border-b border-slate-700">
+      <input
+        type="text"
+        placeholder="Search..."
+        className="w-full md:w-[30%] p-2 pl-4 border rounded-lg border-slate-700 outline-none focus:border-green bg-primary-white text-sm placeholder-slate-500"
+      />
 
-        <div className="flex items-center gap-4 ml-auto">
-          <Bell size={20} className="text-slate-500 cursor-pointer hover:text-green shrink-0" />
+      <div className="flex items-center gap-4 ml-auto">
+        <Bell size={20} className="text-slate-500 cursor-pointer hover:text-green shrink-0 transition" />
 
-          {user ? (
-            <div className="flex items-center gap-3 pr-4">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green text-white">
-                  <User size={14} />
-                </div>
-                <span className="text-sm font-medium text-slate-500">
-                  {user.username}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100"
-              >
-                <LogOut size={14} />
-                Log Out
-              </button>
+        <div className="flex items-center gap-3 pr-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green text-primary-white">
+              <User size={14} />
             </div>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setModal("login")}
-                className="rounded-lg hover:bg-slate-200 cursor-pointer px-3 py-1.5 border text-sm whitespace-nowrap"
-              >
-                Log In
-              </button>
-              <button
-                onClick={() => setModal("signup")}
-                className="bg-green-dark rounded-lg hover:bg-green cursor-pointer px-3 py-1.5 text-white text-sm whitespace-nowrap"
-              >
-                Sign Up
-              </button>
-            </div>
-          )}
+            <span className="text-sm font-medium text-slate-500">
+              {user?.username}
+            </span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-500 hover:bg-secondary-white hover:text-white transition"
+          >
+            <LogOut size={14} />
+            Log Out
+          </button>
         </div>
-      </nav>
-
-      {modal && (
-        <Authentification
-          initialView={modal}
-          onClose={() => setModal(null)}
-          onLoginSuccess={handleLoginSuccess}
-        />
-      )}
-    </>
+      </div>
+    </nav>
   );
 }
 
