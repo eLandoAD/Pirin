@@ -30,6 +30,7 @@ public class FileController {
             @RequestParam MultipartFile file,
             @RequestParam String salt,
             @RequestParam String iv,
+            @RequestParam(required = false) Long folderId,
             Authentication authentication) throws IOException {
 
         User user = (User) authentication.getPrincipal();
@@ -37,6 +38,7 @@ public class FileController {
         String path = storageService.saveFile(data, file.getOriginalFilename() + ".enc");
 
         FileRecord record = new FileRecord(file.getOriginalFilename(), path, salt, iv, user);
+        record.setFolderId(folderId);
         repository.save(record);
 
         return ResponseEntity.ok(Map.of(
@@ -59,7 +61,7 @@ public class FileController {
     @DeleteMapping("/files/{id}")
     public ResponseEntity<?> deleteFile(
             @PathVariable Long id,
-            Authentication authentication) { 
+            Authentication authentication) {
 
         User user = (User) authentication.getPrincipal();
         FileRecord file = repository.findByIdAndUserId(id, user.getId())
@@ -73,7 +75,7 @@ public class FileController {
     public ResponseEntity<?> renameFile(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
-            Authentication authentication) { 
+            Authentication authentication) {
 
         User user = (User) authentication.getPrincipal();
         FileRecord file = repository.findByIdAndUserId(id, user.getId())
@@ -87,7 +89,8 @@ public class FileController {
     public ResponseEntity<?> moveFile(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
-            Authentication authentication) { 
+            Authentication authentication) {
+
         User user = (User) authentication.getPrincipal();
         FileRecord file = repository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new RuntimeException("File non trovato."));
@@ -100,7 +103,8 @@ public class FileController {
     @GetMapping("/files/{id}")
     public ResponseEntity<FileRecord> getFile(
             @PathVariable Long id,
-            Authentication authentication) { 
+            Authentication authentication) {
+
         User user = (User) authentication.getPrincipal();
         FileRecord file = repository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new RuntimeException("File non trovato."));
@@ -112,5 +116,4 @@ public class FileController {
         User user = (User) authentication.getPrincipal();
         return ResponseEntity.ok(repository.findAllByUserId(user.getId()));
     }
-
 }

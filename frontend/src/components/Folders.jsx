@@ -5,7 +5,7 @@ import { fetchFiles, renameFileApi, deleteFileApi, moveFileApi } from "../api/fi
 import { downloadAndDecrypt } from "../api/download";
 import FolderPicker from "./FolderPicker";
 
-function Folders({ showModal, onCloseModal }) {
+function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange }) {
   const {
     folders, currentFolders, breadcrumb,
     createFolder, renameFolder, deleteFolder,
@@ -22,7 +22,15 @@ function Folders({ showModal, onCloseModal }) {
   const [renameFileValue, setRenameFileValue] = useState("");
   const [movingFile, setMovingFile]           = useState(null);
 
-  useEffect(() => { loadFiles(); }, []);
+  const currentFolderId = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].id : null;
+
+  // Notifica App della cartella corrente ogni volta che cambia
+  useEffect(() => {
+    if (onFolderChange) onFolderChange(currentFolderId);
+  }, [currentFolderId]);
+
+  // Ricarica i file quando fileRefreshKey cambia (dopo upload)
+  useEffect(() => { loadFiles(); }, [fileRefreshKey]);
 
   async function loadFiles() {
     setFilesLoading(true);
@@ -91,7 +99,10 @@ function Folders({ showModal, onCloseModal }) {
     onCloseModal();
   }
 
-  const currentFolderId = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].id : null;
+  function handleNavigate(id) {
+    navigateTo(id);
+  }
+
   const visibleFiles = files.filter((f) => (f.folderId ?? null) === currentFolderId);
 
   return (
@@ -99,18 +110,16 @@ function Folders({ showModal, onCloseModal }) {
       {loading && <p className="text-sm text-slate-400">Loading...</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
-      {/* Breadcrumb */}
       <nav className="mb-4 flex items-center gap-1 text-sm text-slate-500">
-        <button onClick={() => navigateTo(null)} className="hover:text-slate-800">Root</button>
+        <button onClick={() => handleNavigate(null)} className="hover:text-slate-800">Root</button>
         {breadcrumb.map((folder) => (
           <span key={folder.id} className="flex items-center gap-1">
             <ChevronRight size={14} />
-            <button onClick={() => navigateTo(folder.id)} className="hover:text-slate-800">{folder.name}</button>
+            <button onClick={() => handleNavigate(folder.id)} className="hover:text-slate-800">{folder.name}</button>
           </span>
         ))}
       </nav>
 
-      {/* Cartelle */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-slate-700">Folders</h3>
         {currentFolders.length === 0 ? (
@@ -144,7 +153,6 @@ function Folders({ showModal, onCloseModal }) {
         )}
       </section>
 
-      {/* File */}
       <section className="mt-6 border-t border-slate-200 pt-4">
         <h3 className="mb-3 text-sm font-semibold text-slate-700">Files</h3>
         {filesLoading && <p className="text-sm text-slate-400">Caricamento file...</p>}
@@ -182,7 +190,6 @@ function Folders({ showModal, onCloseModal }) {
         )}
       </section>
 
-      {/* Modal crea cartella */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40" onClick={() => { setNewFolderName(""); onCloseModal(); }}>
           <div className="rounded-lg bg-white p-6 shadow-xl w-80" onClick={(e) => e.stopPropagation()}>
@@ -199,7 +206,6 @@ function Folders({ showModal, onCloseModal }) {
         </div>
       )}
 
-      {/* FolderPicker*/}
       {movingFile && (
         <FolderPicker
           folders={folders}
