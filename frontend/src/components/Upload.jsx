@@ -18,11 +18,11 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-export default function UploadModal({ onClose, onUploadSuccess }) {
-  const [selected, setSelected]   = useState(null);
-  const [dragging, setDragging]   = useState(false);
-  const [files, setFiles]         = useState([]);
-  const [uploading, setUploading] = useState(false); 
+export default function UploadModal({ onClose, onUploadSuccess, currentFolderId }) {
+  const [selected, setSelected]       = useState(null);
+  const [dragging, setDragging]       = useState(false);
+  const [files, setFiles]             = useState([]);
+  const [uploading, setUploading]     = useState(false); 
   const [uploadError, setUploadError] = useState("");
   const [uploadProgress, setUploadProgress] = useState({});
   const inputRef = useRef();
@@ -33,17 +33,9 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
     addFiles(Array.from(e.dataTransfer.files));
   }
 
-  function handlePick(e) {
-    addFiles(Array.from(e.target.files));
-  }
-
-  function addFiles(newFiles) {
-    setFiles((prev) => [...prev, ...newFiles]);
-  }
-
-  function removeFile(i) {
-    setFiles((f) => f.filter((_, idx) => idx !== i));
-  }
+  function handlePick(e) { addFiles(Array.from(e.target.files)); }
+  function addFiles(newFiles) { setFiles((prev) => [...prev, ...newFiles]); }
+  function removeFile(i) { setFiles((f) => f.filter((_, idx) => idx !== i)); }
 
   async function handleUpload() {
     const password = prompt("Enter your password to encrypt your files:");
@@ -54,7 +46,7 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
     setUploadProgress({});
     try {
       for (const file of files) {
-        await uploadFile(file, password, (loaded, total) => {
+        await uploadFile(file, password, currentFolderId, (loaded, total) => {
           const percentage = (loaded / total) * 100;
           setUploadProgress((prev) => ({
             ...prev,
@@ -74,14 +66,9 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
   const accept = selected !== null ? FILE_TYPES[selected].accept : null;
 
   return (
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-120 mx-4 rounded-xl border border-slate-200 bg-white p-8 shadow-[0_25px_60px_rgba(0,0,0,0.2)]"
-      >
+    <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-120 mx-4 rounded-xl border border-slate-200 bg-white p-8 shadow-[0_25px_60px_rgba(0,0,0,0.2)]">
         <button onClick={onClose} className="absolute right-4 top-4 bg-transparent border-none cursor-pointer text-slate-400">
           <X size={18} />
         </button>
@@ -94,17 +81,11 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
             const Icon = t.icon;
             const active = selected === i;
             return (
-              <button
-                key={i}
-                onClick={() => { setSelected(i); setFiles([]); setUploadError(""); }}
+              <button key={i} onClick={() => { setSelected(i); setFiles([]); setUploadError(""); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium cursor-pointer transition-all ${
-                  active 
-                    ? "bg-slate-900 text-white border border-slate-900" 
-                    : "bg-slate-100 text-slate-500 border border-slate-200"
-                }`}
-              >
-                <Icon size={14} />
-                {t.label}
+                  active ? "bg-slate-900 text-white border border-slate-900" : "bg-slate-100 text-slate-500 border border-slate-200"
+                }`}>
+                <Icon size={14} />{t.label}
               </button>
             );
           })}
@@ -112,21 +93,18 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
 
         {selected !== null && (
           <>
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={handleDrop}
+            <div onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)} onDrop={handleDrop}
               onClick={() => inputRef.current.click()}
               className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all mb-4 ${
                 dragging ? "border-green bg-green-50/50" : "border-slate-300 bg-slate-50"
-              }`}
-            >
+              }`}>
               <Upload size={28} className="mx-auto mb-2 text-slate-400" />
               <p className="m-0 mb-1 text-[13px] font-medium text-slate-500">
                 Drag files here or <span className="text-green-dark font-semibold">browse</span>
               </p>
               <p className="m-0 text-[11px] text-slate-500">
-                {FILE_TYPES[selected].accept === "*" ? "Tutti i formati supportati" : FILE_TYPES[selected].accept}
+                {FILE_TYPES[selected].accept === "*" ? "All formats supported" : FILE_TYPES[selected].accept}
               </p>
               <input ref={inputRef} type="file" multiple accept={accept} onChange={handlePick} className="hidden" />
             </div>
@@ -147,24 +125,19 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
                           {progress !== undefined ? (
                             <div className="flex flex-col items-end">
                               <span className="text-[11px] text-slate-500 font-medium">{Math.round(percentage)}%</span>
-                              <span className="text-[10px] text-slate-400">
-                                {formatBytes(progress.loaded)} / {formatBytes(progress.total)}
-                              </span>
+                              <span className="text-[10px] text-slate-400">{formatBytes(progress.loaded)} / {formatBytes(progress.total)}</span>
                             </div>
                           ) : (
                             <span className="text-[11px] text-slate-400">{formatBytes(f.size)}</span>
                           )}
                         </div>
-                        <button 
-                          onClick={() => removeFile(i)} 
-                          disabled={uploading}
-                          className="bg-transparent border-none cursor-pointer text-slate-500 ml-3 p-0 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
+                        <button onClick={() => removeFile(i)} disabled={uploading}
+                          className="bg-transparent border-none cursor-pointer text-slate-500 ml-3 p-0 disabled:cursor-not-allowed disabled:opacity-50">
                           <X size={14} />
                         </button>
                       </div>
                       {progress !== undefined && (
-                        <div className="absolute bottom-0 left-0 h-full rounded-md bg-green-500/20 transition-all" style={{ width: `${percentage}%` }}></div>
+                        <div className="absolute bottom-0 left-0 h-full rounded-md bg-green-500/20 transition-all" style={{ width: `${percentage}%` }} />
                       )}
                     </div>
                   );
@@ -173,21 +146,14 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
             )}
 
             {uploadError && (
-              <p className="rounded-md bg-red-50 p-3 text-[13px] text-red-600 mb-3">
-                {uploadError}
-              </p>
+              <p className="rounded-md bg-red-50 p-3 text-[13px] text-red-600 mb-3">{uploadError}</p>
             )}
 
-            <button
-              onClick={handleUpload}
-              disabled={files.length === 0 || uploading}
+            <button onClick={handleUpload} disabled={files.length === 0 || uploading}
               className={`w-full rounded-md border-none p-2.5 text-[13px] font-semibold transition-colors ${
-                (files.length === 0 || uploading) 
-                  ? "bg-slate-200 text-slate-400 cursor-not-allowed" 
-                  : "bg-slate-900 text-white cursor-pointer"
-              }`}
-            >
-              {uploading ? "Encrypting and uploading..." : `Carica ${files.length > 0 ? `${files.length} file` : ""}`}
+                (files.length === 0 || uploading) ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-900 text-white cursor-pointer"
+              }`}>
+              {uploading ? "Encrypting and uploading..." : `Upload ${files.length > 0 ? `${files.length} file${files.length > 1 ? "s" : ""}` : ""}`}
             </button>
           </>
         )}

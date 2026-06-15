@@ -20,7 +20,6 @@ function NavBar({ onLogout, user, onSearch }) {
       />
 
       <div className="flex items-center gap-4 ml-auto">
-        <Bell size={20} className="text-slate-500 cursor-pointer hover:text-green shrink-0 transition" />
 
         <div className="flex items-center gap-3 pr-4">
           <div className="flex items-center gap-2">

@@ -14,7 +14,9 @@ import { fetchFiles, renameFileApi, deleteFileApi, moveFileApi } from "../api/fi
 import { downloadAndDecrypt } from "../api/download";
 import FolderPicker from "./FolderPicker";
 
-function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = "" }) {
+import { useFolders } from "../hooks/useFolders"; 
+
+function Folders({ showModal, onCloseModal, fileRefreshKey, onFolderChange, user, searchQuery = "" }) {
   const {
     folders, currentFolders, breadcrumb,
     createFolder, renameFolder, deleteFolder,
@@ -30,39 +32,41 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
   const [renamingFileId, setRenamingFileId]   = useState(null);
   const [renameFileValue, setRenameFileValue] = useState("");
   const [movingFile, setMovingFile]           = useState(null);
-  const [previewFile, setPreviewFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [previewType, setPreviewType] = useState("");
+  const [previewFile, setPreviewFile]         = useState(null);
+  const [previewUrl, setPreviewUrl]           = useState(null);
+  const [previewType, setPreviewType]         = useState("");
 
-  useEffect(() => { loadFiles(); }, []);
+  const currentFolderId = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].id : null;
 
+  // Notifica App della cartella corrente ogni volta che cambia
+  useEffect(() => {
+    if (onFolderChange) onFolderChange(currentFolderId);
+  }, [currentFolderId, onFolderChange]);
+
+  // Ricarica i file quando fileRefreshKey cambia (dopo upload)
+  useEffect(() => { loadFiles(); }, [fileRefreshKey]);
 
   function getMimeType(filename) {
-  const ext = filename.split(".").pop()?.toLowerCase();
+    const ext = filename.split(".").pop()?.toLowerCase();
+    const map = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      webp: "image/webp",
+      svg: "image/svg+xml",
+      pdf: "application/pdf",
+      mp4: "video/mp4",
+      webm: "video/webm",
+      mov: "video/quicktime",
+      mp3: "audio/mpeg",
+      wav: "audio/wav",
+      ogg: "audio/ogg",
+      txt: "text/plain"
+    };
+    return map[ext] || "application/octet-stream";
+  }
 
-  const map = {
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    png: "image/png",
-    gif: "image/gif",
-    webp: "image/webp",
-    svg: "image/svg+xml",
-
-    pdf: "application/pdf",
-
-    mp4: "video/mp4",
-    webm: "video/webm",
-    mov: "video/quicktime",
-
-    mp3: "audio/mpeg",
-    wav: "audio/wav",
-    ogg: "audio/ogg",
-
-    txt: "text/plain"
-  };
-
-  return map[ext] || "application/octet-stream";
-}
   async function loadFiles() {
     setFilesLoading(true);
     setFilesError("");
@@ -91,37 +95,22 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
   }
 
   async function handlePreview(file) {
-  const password = prompt(
-    "Inserisci la password per decifrare il file:"
-  );
+    const password = prompt("Inserisci la password per decifrare il file:");
+    if (!password) return;
 
-  if (!password) return;
+    try {
+      const blob = await downloadAndDecrypt(file.id, password, { iv: file.iv });
+      const mimeType = getMimeType(file.filename);
+      const typedBlob = new Blob([await blob.arrayBuffer()], { type: mimeType });
+      const url = URL.createObjectURL(typedBlob);
 
-  try {
-    const blob = await downloadAndDecrypt(
-      file.id,
-      password,
-      {
-        iv: file.iv
-      }
-    );
-
-    const mimeType = getMimeType(file.filename);
-
-    const typedBlob = new Blob(
-      [await blob.arrayBuffer()],
-      { type: mimeType }
-    );
-
-    const url = URL.createObjectURL(typedBlob);
-
-    setPreviewFile(file);
-    setPreviewType(mimeType);
-    setPreviewUrl(url);
-  } catch (e) {
-    alert("Errore preview: " + e.message);
+      setPreviewFile(file);
+      setPreviewType(mimeType);
+      setPreviewUrl(url);
+    } catch (e) {
+      alert("Errore preview: " + e.message);
+    }
   }
-}
 
   async function handleDeleteFile(id) {
     try {
@@ -133,6 +122,7 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
   }
 
   async function commitRenameFile(id) {
+    if (!renameFileValue.trim()) return setRenamingFileId(null);
     try {
       await renameFileApi(id, renameFileValue);
       setFiles((prev) => prev.map((f) => f.id === id ? { ...f, filename: renameFileValue } : f));
@@ -158,14 +148,17 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
   }
 
   function handleCreateFolder() {
+    if (!newFolderName.trim()) return;
     createFolder(newFolderName);
     setNewFolderName("");
     onCloseModal();
   }
 
-  const currentFolderId = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].id : null;
+  function handleNavigate(id) {
+    navigateTo(id);
+  }
 
-  // Filtra file e cartelle in base alla searchQuery
+  // Filtra file e cartelle in base alla posizione corrente e alla searchQuery
   const visibleFiles = files
     .filter((f) => (f.folderId ?? null) === currentFolderId)
     .filter((f) => f.filename.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -178,18 +171,16 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
       {loading && <p className="text-sm text-slate-400">Loading...</p>}
       {error   && <p className="text-sm text-red-500">{error}</p>}
 
-      {/* Breadcrumb */}
       <nav className="mb-4 flex items-center gap-1 text-sm text-slate-500">
-        <button onClick={() => navigateTo(null)} className="hover:text-slate-800">Root</button>
+        <button onClick={() => handleNavigate(null)} className="hover:text-slate-800 cursor-pointer">Root</button>
         {breadcrumb.map((folder) => (
           <span key={folder.id} className="flex items-center gap-1">
             <ChevronRight size={14} />
-            <button onClick={() => navigateTo(folder.id)} className="hover:text-slate-800">{folder.name}</button>
+            <button onClick={() => handleNavigate(folder.id)} className="hover:text-slate-800 cursor-pointer">{folder.name}</button>
           </span>
         ))}
       </nav>
 
-      {/* Cartelle */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-slate-700">Folders</h3>
         {visibleFolders.length === 0 ? (
@@ -207,17 +198,20 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
                 {renamingId === folder.id ? (
                   <input autoFocus value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { renameFolder(folder.id, renameValue); setRenamingId(null); } if (e.key === "Escape") setRenamingId(null); }}
+                    onKeyDown={(e) => { 
+                      if (e.key === "Enter") { renameFolder(folder.id, renameValue); setRenamingId(null); } 
+                      if (e.key === "Escape") setRenamingId(null); 
+                    }}
                     onBlur={() => { renameFolder(folder.id, renameValue); setRenamingId(null); }}
                     className="rounded border border-slate-300 px-2 py-0.5 text-sm" />
                 ) : (
-                  <button onClick={() => openFolder(folder.id)} className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                  <button onClick={() => openFolder(folder.id)} className="flex items-center gap-2 text-sm font-medium text-slate-800 cursor-pointer">
                     <Folder size={16} className="text-teal-600" />{folder.name}
                   </button>
                 )}
                 <div className="flex items-center gap-2">
-                  <button onClick={() => { setRenamingId(folder.id); setRenameValue(folder.name); }} className="text-slate-400 hover:text-slate-700" title="Rename"><Pencil size={14} /></button>
-                  <button onClick={() => deleteFolder(folder.id)} className="text-slate-400 hover:text-red-500" title="Delete"><Trash2 size={14} /></button>
+                  <button onClick={() => { setRenamingId(folder.id); setRenameValue(folder.name); }} className="text-slate-400 hover:text-slate-700 cursor-pointer" title="Rename"><Pencil size={14} /></button>
+                  <button onClick={() => deleteFolder(folder.id)} className="text-slate-400 hover:text-red-500 cursor-pointer" title="Delete"><Trash2 size={14} /></button>
                 </div>
               </li>
             ))}
@@ -225,7 +219,6 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
         )}
       </section>
 
-      {/* File */}
       <section className="mt-6 border-t border-slate-200 pt-4">
         <h3 className="mb-3 text-sm font-semibold text-slate-700">Files</h3>
         {filesLoading && <p className="text-sm text-slate-400">Caricamento file...</p>}
@@ -254,17 +247,11 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-2">
-                  <button
-                    onClick={() => handlePreview(file)}
-                    className="text-slate-400 hover:text-blue-500"
-                    title="Preview"
-                  >
-                    <Eye size={14} />
-                  </button>
-                  <button onClick={() => handleDownload(file)} className="text-slate-400 hover:text-teal-600" title="Download"><Download size={14} /></button>
-                  <button onClick={() => { setRenamingFileId(file.id); setRenameFileValue(file.filename); }} className="text-slate-400 hover:text-slate-700" title="Rename"><Pencil size={14} /></button>
-                  <button onClick={() => setMovingFile(file)} className="text-slate-400 hover:text-blue-500" title="Sposta"><FolderInput size={14} /></button>
-                  <button onClick={() => handleDeleteFile(file.id)} className="text-slate-400 hover:text-red-500" title="Delete"><Trash2 size={14} /></button>
+                  <button onClick={() => handlePreview(file)} className="text-slate-400 hover:text-blue-500 cursor-pointer" title="Preview"><Eye size={14} /></button>
+                  <button onClick={() => handleDownload(file)} className="text-slate-400 hover:text-teal-600 cursor-pointer" title="Download"><Download size={14} /></button>
+                  <button onClick={() => { setRenamingFileId(file.id); setRenameFileValue(file.filename); }} className="text-slate-400 hover:text-slate-700 cursor-pointer" title="Rename"><Pencil size={14} /></button>
+                  <button onClick={() => setMovingFile(file)} className="text-slate-400 hover:text-blue-500 cursor-pointer" title="Sposta"><FolderInput size={14} /></button>
+                  <button onClick={() => handleDeleteFile(file.id)} className="text-slate-400 hover:text-red-500 cursor-pointer" title="Delete"><Trash2 size={14} /></button>
                 </div>
               </li>
             ))}
@@ -272,7 +259,6 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
         )}
       </section>
 
-      {/* Modal crea cartella */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40" onClick={() => { setNewFolderName(""); onCloseModal(); }}>
           <div className="rounded-lg bg-white p-6 shadow-xl w-80" onClick={(e) => e.stopPropagation()}>
@@ -282,14 +268,13 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
               onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => { setNewFolderName(""); onCloseModal(); }} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">Cancel</button>
-              <button onClick={handleCreateFolder} className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800">Create</button>
+              <button onClick={() => { setNewFolderName(""); onCloseModal(); }} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 cursor-pointer">Cancel</button>
+              <button onClick={handleCreateFolder} className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 cursor-pointer">Create</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* FolderPicker */}
       {movingFile && (
         <FolderPicker
           folders={folders}
@@ -300,21 +285,18 @@ function Folders({ showModal, onCloseModal, fileRefreshKey, user, searchQuery = 
       )}
 
       {previewFile && (
-      <FilePreview
-        fileName={previewFile.filename}
-        previewUrl={previewUrl}
-        mimeType={previewType}
-        onClose={() => {
-          if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-          }
-
-          setPreviewFile(null);
-          setPreviewUrl(null);
-          setPreviewType("");
-        }}
-      />
-    )}
+        <FilePreview
+          fileName={previewFile.filename}
+          previewUrl={previewUrl}
+          mimeType={previewType}
+          onClose={() => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            setPreviewFile(null);
+            setPreviewUrl(null);
+            setPreviewType("");
+          }}
+        />
+      )}
     </div>
   );
 }
