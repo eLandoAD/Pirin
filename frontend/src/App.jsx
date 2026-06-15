@@ -14,6 +14,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [user, setUser] = useState(null);
   const [fileRefreshKey, setFileRefreshKey] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("darkMode") === "true"
   );
@@ -27,7 +28,6 @@ function App() {
     const path = window.location.pathname;
 
     if (token && type === "verify") {
-      // Link di verifica email — verifica direttamente
       fetch(`${BASE_URL}/verify?token=${token}`)
         .then((res) => res.json())
         .then((data) => {
@@ -36,11 +36,9 @@ function App() {
         })
         .catch(() => setVerifyMessage("Errore durante la verifica."));
     } else if (token && path === "/reset-password") {
-      // Link di reset password — apri il modal
       setResetToken(token);
       window.history.replaceState({}, "", "/");
     } else if (token) {
-      // Link generico di verifica (fallback per compatibilità)
       fetch(`${BASE_URL}/verify?token=${token}`)
         .then((res) => res.json())
         .then((data) => {
@@ -89,14 +87,12 @@ function App() {
   return (
     <>
       {!user ? (
-        // Non loggato — mostra landing
         <Landing
           onLoginSuccess={handleLoginSuccess}
           onLogout={handleLogout}
           user={user}
         />
       ) : (
-        // Loggato — mostra vault
         <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
           <SideMenu
             onCreateFolder={() => setShowFolderModal(true)}
@@ -104,7 +100,11 @@ function App() {
             onUploadSuccess={() => setFileRefreshKey(k => k + 1)}
           />
           <div className="flex min-w-0 flex-1 flex-col">
-            <NavBar onLogout={handleLogout} user={user} />
+            <NavBar
+              onLogout={handleLogout}
+              user={user}
+              onSearch={setSearchQuery}
+            />
             <main className="flex-1 overflow-y-auto border-t border-slate-300 p-4 md:p-8 pb-20 lg:pb-8">
               <h1 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Vault Explorer</h1>
               <Folders
@@ -113,6 +113,7 @@ function App() {
                 onCloseModal={() => setShowFolderModal(false)}
                 fileRefreshKey={fileRefreshKey}
                 user={user}
+                searchQuery={searchQuery}
               />
             </main>
             <BottomNavigation onOpenSettings={() => setShowSettings(true)} />
