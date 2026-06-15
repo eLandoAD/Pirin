@@ -5,8 +5,6 @@ function NavBar({ onLogout, user, onSearch }) {
 
   async function handleLogout() {
     await logout();
-    localStorage.removeItem("username");
-    localStorage.removeItem("email");
     if (onLogout) onLogout();
   }
 

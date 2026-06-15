@@ -10,22 +10,22 @@ import NavBar from "./components/NavBar";
 const BASE_URL = "/api/auth";
 
 function App() {
-  const [showFolderModal, setShowFolderModal] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [user, setUser] = useState(null);
-  const [fileRefreshKey, setFileRefreshKey] = useState(0);
-  const [currentFolderId, setCurrentFolderId] = useState(null); 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [showFolderModal, setShowFolderModal]   = useState(false);
+  const [showSettings, setShowSettings]         = useState(false);
+  const [user, setUser]                         = useState(null);
+  const [fileRefreshKey, setFileRefreshKey]     = useState(0);
+  const [currentFolderId, setCurrentFolderId]   = useState(null);
+  const [searchQuery, setSearchQuery]           = useState("");
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("darkMode") === "true"
   );
   const [verifyMessage, setVerifyMessage] = useState("");
-  const [resetToken, setResetToken] = useState(null);
+  const [resetToken, setResetToken]       = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const path = window.location.pathname;
+    const token  = params.get("token");
+    const path   = window.location.pathname;
 
     if (token && path === "/reset-password") {
       setResetToken(token);
@@ -41,17 +41,18 @@ function App() {
     }
   }, []);
 
+  // Ripristina sessione da sessionStorage (funziona solo se il tab è ancora aperto)
   useEffect(() => {
-    const token = localStorage.getItem("jwt");
-    const username = localStorage.getItem("username");
-    const email = localStorage.getItem("email");
+    const token    = sessionStorage.getItem("jwt");
+    const username = sessionStorage.getItem("username");
+    const email    = sessionStorage.getItem("email");
     if (token && username) setUser({ token, username, email });
   }, []);
 
   function handleLoginSuccess(data) {
     setUser(data);
-    if (data.username) localStorage.setItem("username", data.username);
-    if (data.email) localStorage.setItem("email", data.email);
+    // Nota: i dati sensibili vengono salvati in sessionStorage da auth.js → login()
+    // Qui non salviamo nulla in localStorage
   }
 
   function handleLogout() {
@@ -65,7 +66,7 @@ function App() {
   function toggleDarkMode() {
     setDarkMode((prev) => {
       const next = !prev;
-      localStorage.setItem("darkMode", next);
+      localStorage.setItem("darkMode", next); // darkMode non è sensibile, va bene in localStorage
       return next;
     });
   }
@@ -73,11 +74,7 @@ function App() {
   return (
     <>
       {!user ? (
-        <Landing
-          onLoginSuccess={handleLoginSuccess}
-          onLogout={handleLogout}
-          user={user}
-        />
+        <Landing onLoginSuccess={handleLoginSuccess} onLogout={handleLogout} user={user} />
       ) : (
         <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
           <SideMenu
@@ -87,11 +84,7 @@ function App() {
             currentFolderId={currentFolderId}
           />
           <div className="flex min-w-0 flex-1 flex-col">
-            <NavBar 
-              onLogout={handleLogout} 
-              user={user} 
-              onSearch={setSearchQuery} 
-            />
+            <NavBar onLogout={handleLogout} user={user} onSearch={setSearchQuery} />
 
             {verifyMessage && (
               <div className="bg-green-50 border-b border-green-200 px-6 py-2 text-sm text-green-700 flex justify-between">
@@ -118,11 +111,7 @@ function App() {
       )}
 
       {showSettings && (
-        <SettingsModal
-          darkMode={darkMode}
-          onToggle={toggleDarkMode}
-          onClose={() => setShowSettings(false)}
-        />
+        <SettingsModal darkMode={darkMode} onToggle={toggleDarkMode} onClose={() => setShowSettings(false)} />
       )}
 
       {resetToken && (

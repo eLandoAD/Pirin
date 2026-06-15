@@ -68,7 +68,7 @@ export default function SideMenu({ onCreateFolder, onOpenSettings, onUploadSucce
       {/* Floating Action Button (FAB) - Solo per Mobile e Tablet */}
       <div className="fixed bottom-24 right-6 z-40 lg:hidden" ref={menuRef}>
         {mobileMenuOpen && (
-          <div className="absolute bottom-16 right-0 mb-2 flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 min-w-[160px] animate-in fade-in slide-in-from-bottom-2 duration-150">
+          <div className="absolute bottom-16 right-0 mb-2 flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 min-w-40 animate-in fade-in slide-in-from-bottom-2 duration-150">
             <button
               onClick={() => { setUploadOpen(true); setMobileMenuOpen(false); }}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 w-full"
