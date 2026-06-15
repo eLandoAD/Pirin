@@ -1,6 +1,15 @@
+import FilePreview from "./FilePreview";
 import { useState, useEffect } from "react";
-import { Folder, ChevronRight, Trash2, Pencil, File, Download, FolderInput } from "lucide-react";
-import { useFolders } from "../hooks/useFolders";
+import {
+  Folder,
+  ChevronRight,
+  Trash2,
+  Pencil,
+  File,
+  Download,
+  FolderInput,
+  Eye
+} from "lucide-react";
 import { fetchFiles, renameFileApi, deleteFileApi, moveFileApi } from "../api/files";
 import { downloadAndDecrypt } from "../api/download";
 import FolderPicker from "./FolderPicker";
@@ -21,9 +30,39 @@ function Folders({ showModal, onCloseModal }) {
   const [renamingFileId, setRenamingFileId]   = useState(null);
   const [renameFileValue, setRenameFileValue] = useState("");
   const [movingFile, setMovingFile]           = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewType, setPreviewType] = useState("");
 
   useEffect(() => { loadFiles(); }, []);
 
+
+  function getMimeType(filename) {
+  const ext = filename.split(".").pop()?.toLowerCase();
+
+  const map = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
+    svg: "image/svg+xml",
+
+    pdf: "application/pdf",
+
+    mp4: "video/mp4",
+    webm: "video/webm",
+    mov: "video/quicktime",
+
+    mp3: "audio/mpeg",
+    wav: "audio/wav",
+    ogg: "audio/ogg",
+
+    txt: "text/plain"
+  };
+
+  return map[ext] || "application/octet-stream";
+}
   async function loadFiles() {
     setFilesLoading(true);
     setFilesError("");
@@ -50,6 +89,39 @@ function Folders({ showModal, onCloseModal }) {
       alert("Errore nel download: " + e.message);
     }
   }
+
+  async function handlePreview(file) {
+  const password = prompt(
+    "Inserisci la password per decifrare il file:"
+  );
+
+  if (!password) return;
+
+  try {
+    const blob = await downloadAndDecrypt(
+      file.id,
+      password,
+      {
+        iv: file.iv
+      }
+    );
+
+    const mimeType = getMimeType(file.filename);
+
+    const typedBlob = new Blob(
+      [await blob.arrayBuffer()],
+      { type: mimeType }
+    );
+
+    const url = URL.createObjectURL(typedBlob);
+
+    setPreviewFile(file);
+    setPreviewType(mimeType);
+    setPreviewUrl(url);
+  } catch (e) {
+    alert("Errore preview: " + e.message);
+  }
+}
 
   async function handleDeleteFile(id) {
     try {
@@ -171,6 +243,13 @@ function Folders({ showModal, onCloseModal }) {
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-2">
+                  <button
+                    onClick={() => handlePreview(file)}
+                    className="text-slate-400 hover:text-blue-500"
+                    title="Preview"
+                  >
+                    <Eye size={14} />
+                  </button>
                   <button onClick={() => handleDownload(file)} className="text-slate-400 hover:text-teal-600" title="Download"><Download size={14} /></button>
                   <button onClick={() => { setRenamingFileId(file.id); setRenameFileValue(file.filename); }} className="text-slate-400 hover:text-slate-700" title="Rename"><Pencil size={14} /></button>
                   <button onClick={() => setMovingFile(file)} className="text-slate-400 hover:text-blue-500" title="Sposta"><FolderInput size={14} /></button>
@@ -208,6 +287,23 @@ function Folders({ showModal, onCloseModal }) {
           onCancel={() => setMovingFile(null)}
         />
       )}
+
+      {previewFile && (
+      <FilePreview
+        fileName={previewFile.filename}
+        previewUrl={previewUrl}
+        mimeType={previewType}
+        onClose={() => {
+          if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+          }
+
+          setPreviewFile(null);
+          setPreviewUrl(null);
+          setPreviewType("");
+        }}
+      />
+    )}
     </div>
   );
 }
