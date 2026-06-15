@@ -90,7 +90,7 @@ export default function FilePreview({
           {fileName}
         </h3>
 
-        <div className="flex justify-center bg-slate-50 rounded-md p-2 min-h-[200px] items-center">
+        <div className="flex justify-center bg-slate-50 rounded-md p-2 min-h-50 items-center">
           {renderPreview()}
         </div>
       </div>
