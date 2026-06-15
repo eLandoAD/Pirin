@@ -1,4 +1,4 @@
-const BASE_URL = "https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev/api/auth";
+const BASE_URL = "/api/auth";
 
 export function saveToken(token) {
   localStorage.setItem("jwt", token);
