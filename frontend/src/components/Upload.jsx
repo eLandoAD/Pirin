@@ -18,13 +18,12 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-export default function UploadModal({ onClose, onUploadSuccess }) {
+export default function UploadModal({ onClose, onUploadSuccess, currentFolderId }) {
   const [selected, setSelected]       = useState(null);
   const [dragging, setDragging]       = useState(false);
   const [files, setFiles]             = useState([]);
   const [uploading, setUploading]     = useState(false);
   const [uploadError, setUploadError] = useState("");
-  // stato per ogni file: { phase: "waiting"|"encrypting"|"uploading"|"done", percentage: 0-100, loaded, total }
   const [fileStatus, setFileStatus]   = useState({});
   const inputRef = useRef();
 
@@ -41,17 +40,9 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
     addFiles(Array.from(e.dataTransfer.files));
   }
 
-  function handlePick(e) {
-    addFiles(Array.from(e.target.files));
-  }
-
-  function addFiles(newFiles) {
-    setFiles((prev) => [...prev, ...newFiles]);
-  }
-
-  function removeFile(i) {
-    setFiles((f) => f.filter((_, idx) => idx !== i));
-  }
+  function handlePick(e) { addFiles(Array.from(e.target.files)); }
+  function addFiles(newFiles) { setFiles((prev) => [...prev, ...newFiles]); }
+  function removeFile(i) { setFiles((f) => f.filter((_, idx) => idx !== i)); }
 
   async function handleUpload() {
     const password = prompt("Enter your password to encrypt your files:");
@@ -63,16 +54,13 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
 
     try {
       for (const file of files) {
-        // Fase 1: cifratura
         setStatus(file.name, { phase: "encrypting", percentage: 0 });
 
-        await uploadFile(file, password, (loaded, total) => {
-          // Fase 2: upload in corso
+        await uploadFile(file, password, currentFolderId, (loaded, total) => {
           const percentage = Math.round((loaded / total) * 100);
           setStatus(file.name, { phase: "uploading", percentage, loaded, total });
         });
 
-        // Fatto
         setStatus(file.name, { phase: "done", percentage: 100 });
       }
       onUploadSuccess?.();
@@ -108,13 +96,10 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
                 key={i}
                 onClick={() => { setSelected(i); setFiles([]); setUploadError(""); setFileStatus({}); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium cursor-pointer transition-all ${
-                  active
-                    ? "bg-slate-900 text-white border border-slate-900"
-                    : "bg-slate-100 text-slate-500 border border-slate-200"
+                  active ? "bg-slate-900 text-white border border-slate-900" : "bg-slate-100 text-slate-500 border border-slate-200"
                 }`}
               >
-                <Icon size={14} />
-                {t.label}
+                <Icon size={14} />{t.label}
               </button>
             );
           })}
@@ -136,7 +121,7 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
                 Drag files here or <span className="text-green-dark font-semibold">browse</span>
               </p>
               <p className="m-0 text-[11px] text-slate-500">
-                {FILE_TYPES[selected].accept === "*" ? "Tutti i formati supportati" : FILE_TYPES[selected].accept}
+                {FILE_TYPES[selected].accept === "*" ? "All formats supported" : FILE_TYPES[selected].accept}
               </p>
               <input ref={inputRef} type="file" multiple accept={accept} onChange={handlePick} className="hidden" />
             </div>
@@ -148,7 +133,6 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
                   const phase = status?.phase;
                   const percentage = status?.percentage ?? 0;
 
-                  // colore e label in base alla fase
                   const barColor =
                     phase === "done"       ? "bg-green" :
                     phase === "uploading"  ? "bg-green" :
@@ -161,7 +145,6 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
 
                   return (
                     <div key={i} className="rounded-md overflow-hidden bg-slate-100">
-                      {/* riga info file */}
                       <div className="flex items-center justify-between px-3 py-2 text-[12px] text-slate-700">
                         <div className="flex-1 min-w-0">
                           <span className="overflow-hidden text-ellipsis whitespace-nowrap block">{f.name}</span>
@@ -191,7 +174,6 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
                         </div>
                       </div>
 
-                      {/* barra di progresso */}
                       {phase && phase !== "waiting" && (
                         <div className="h-1 w-full bg-slate-200">
                           <div
@@ -209,21 +191,17 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
             )}
 
             {uploadError && (
-              <p className="rounded-md bg-red-50 p-3 text-[13px] text-red-600 mb-3">
-                {uploadError}
-              </p>
+              <p className="rounded-md bg-red-50 p-3 text-[13px] text-red-600 mb-3">{uploadError}</p>
             )}
 
             <button
               onClick={handleUpload}
               disabled={files.length === 0 || uploading}
               className={`w-full rounded-md border-none p-2.5 text-[13px] font-semibold transition-colors ${
-                files.length === 0 || uploading
-                  ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  : "bg-slate-900 text-white cursor-pointer"
+                files.length === 0 || uploading ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-900 text-white cursor-pointer"
               }`}
             >
-              {uploading ? "Encrypting and uploading..." : `Carica ${files.length > 0 ? `${files.length} file` : ""}`}
+              {uploading ? "Encrypting and uploading..." : `Upload ${files.length > 0 ? `${files.length} file${files.length > 1 ? "s" : ""}` : ""}`}
             </button>
           </>
         )}

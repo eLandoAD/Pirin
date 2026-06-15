@@ -1,7 +1,7 @@
 import { Bell, LogOut, User } from "lucide-react";
 import { logout } from "../api/auth";
 
-function NavBar({ onLogout, user }) {
+function NavBar({ onLogout, user, onSearch }) {
 
   async function handleLogout() {
     await logout();
@@ -15,11 +15,11 @@ function NavBar({ onLogout, user }) {
       <input
         type="text"
         placeholder="Search..."
+        onChange={(e) => onSearch?.(e.target.value)}
         className="w-full md:w-[30%] p-2 pl-4 border rounded-lg border-slate-700 outline-none focus:border-green bg-primary-white text-sm placeholder-slate-500"
       />
 
       <div className="flex items-center gap-4 ml-auto">
-        <Bell size={20} className="text-slate-500 cursor-pointer hover:text-green shrink-0 transition" />
 
         <div className="flex items-center gap-3 pr-4">
           <div className="flex items-center gap-2">
