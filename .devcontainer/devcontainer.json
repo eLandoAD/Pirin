@@ -1,4 +1,8 @@
 {
-  "name": "Pirin",
-  "image": "mcr.microsoft.com/devcontainers/java:25"
+  "name": "Docker in Codespaces",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest"
+    }
+  }
 }
