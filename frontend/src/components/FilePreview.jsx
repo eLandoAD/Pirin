@@ -9,6 +9,18 @@ export default function FilePreview({
   function renderPreview() {
     if (!previewUrl) return null;
 
+    // File di Testo (.txt)
+    if (mimeType === "text/plain") {
+      return (
+        <iframe
+          src={previewUrl}
+          title={fileName}
+          className="h-[70vh] w-full rounded border bg-white p-4 font-mono text-sm text-slate-800"
+        />
+      );
+    }
+
+    // Immagini
     if (mimeType.startsWith("image/")) {
       return (
         <img
@@ -19,6 +31,7 @@ export default function FilePreview({
       );
     }
 
+    // PDF
     if (mimeType === "application/pdf") {
       return (
         <iframe
@@ -29,6 +42,7 @@ export default function FilePreview({
       );
     }
 
+    // Video
     if (mimeType.startsWith("video/")) {
       return (
         <video
@@ -40,6 +54,7 @@ export default function FilePreview({
       );
     }
 
+    // Audio
     if (mimeType.startsWith("audio/")) {
       return (
         <audio controls className="w-full">
@@ -49,7 +64,7 @@ export default function FilePreview({
     }
 
     return (
-      <div className="text-center text-slate-600">
+      <div className="text-center text-slate-600 py-8">
         Preview non disponibile per questo formato.
       </div>
     );
@@ -57,25 +72,25 @@ export default function FilePreview({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
       onClick={onClose}
     >
       <div
-        className="relative w-[90vw] max-w-5xl rounded-lg bg-white p-4"
+        className="relative w-[90vw] max-w-5xl rounded-lg bg-white p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-slate-500"
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
         >
           <X size={20} />
         </button>
 
-        <h3 className="mb-4 text-lg font-semibold">
+        <h3 className="mb-4 pr-8 text-lg font-semibold text-slate-800 truncate">
           {fileName}
         </h3>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center bg-slate-50 rounded-md p-2 min-h-[200px] items-center">
           {renderPreview()}
         </div>
       </div>
