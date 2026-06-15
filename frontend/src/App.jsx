@@ -14,7 +14,7 @@ function App() {
   const [showSettings, setShowSettings]         = useState(false);
   const [user, setUser]                         = useState(null);
   const [fileRefreshKey, setFileRefreshKey]     = useState(0);
-  const [currentFolderId, setCurrentFolderId]   = useState(null); // cartella aperta
+  const [currentFolderId, setCurrentFolderId]   = useState(null); 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
   const [verifyMessage, setVerifyMessage]       = useState("");
   const [resetToken, setResetToken]             = useState(null);
