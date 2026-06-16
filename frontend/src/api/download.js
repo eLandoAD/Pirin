@@ -1,7 +1,9 @@
 import { deriveKEK } from "../crypto/key";
 import { authHeader } from "./auth";
 
-const BASE_URL = "/api";
+const BASE_URL = import.meta.env.VITE_BACKEND_URL 
+  ? `${import.meta.env.VITE_BACKEND_URL}/api` 
+  : "/api";
 
 export async function downloadAndDecrypt(id, password, fileMeta) {
   const res = await fetch(`${BASE_URL}/download/${id}`, {
@@ -10,9 +12,9 @@ export async function downloadAndDecrypt(id, password, fileMeta) {
   if (!res.ok) throw new Error("Download fallito");
   const encryptedBuffer = await res.arrayBuffer();
 
-  const encryptedDekB64 = localStorage.getItem("encryptedDek");
-  const dekSaltB64      = localStorage.getItem("dekSalt");
-  const dekIvB64        = localStorage.getItem("dekIv");
+  const encryptedDekB64 = sessionStorage.getItem("encryptedDek");
+  const dekSaltB64      = sessionStorage.getItem("dekSalt");
+  const dekIvB64        = sessionStorage.getItem("dekIv");
 
   if (!encryptedDekB64 || !dekSaltB64 || !dekIvB64) {
     throw new Error("Dati DEK non trovati. Effettua il login.");

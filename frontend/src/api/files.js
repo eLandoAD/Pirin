@@ -1,6 +1,8 @@
 import { authHeader } from "./auth";
 
-const BASE_URL = "/api";
+const BASE_URL = import.meta.env.VITE_BACKEND_URL 
+  ? `${import.meta.env.VITE_BACKEND_URL}/api` 
+  : "/api";
 
 export async function fetchFiles() {
   const res = await fetch(`${BASE_URL}/files`, {

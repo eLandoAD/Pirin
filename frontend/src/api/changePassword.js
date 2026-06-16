@@ -4,9 +4,9 @@ import { authHeader } from "./auth";
 const BASE_URL = "/api";
 
 export async function changePassword({ oldPassword, newPassword }) {
-  const encryptedDekB64 = localStorage.getItem("encryptedDek");
-  const dekSaltB64      = localStorage.getItem("dekSalt");
-  const dekIvB64        = localStorage.getItem("dekIv");
+  const encryptedDekB64 = sessionStorage.getItem("encryptedDek");
+  const dekSaltB64      = sessionStorage.getItem("dekSalt");
+  const dekIvB64        = sessionStorage.getItem("dekIv");
 
   if (!encryptedDekB64 || !dekSaltB64 || !dekIvB64) {
     throw new Error("Dati DEK non trovati. Effettua il login.");

@@ -9,12 +9,12 @@ function NavBar({ onLogout, user, onSearch }) {
   }
 
   return (
-    <nav className="bg-primary-white flex items-center p-4 px-6 gap-4 border-b border-slate-700">
+    <nav className="bg-primary-white flex items-center p-4 px-6 gap-4 border-b border-slate-500">
       <input
         type="text"
         placeholder="Search..."
         onChange={(e) => onSearch?.(e.target.value)}
-        className="w-full md:w-[30%] p-2 pl-4 border rounded-lg border-slate-700 outline-none focus:border-green bg-primary-white text-sm placeholder-slate-500"
+        className="w-full md:w-[30%] p-2 pl-4 border rounded-lg border-slate-500 outline-none focus:border-green bg-primary-white text-sm placeholder-slate-500"
       />
 
       <div className="flex items-center gap-4 ml-auto">

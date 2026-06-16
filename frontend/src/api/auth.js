@@ -1,4 +1,6 @@
-const BASE_URL = "/api/auth";
+const BASE_URL = import.meta.env.VITE_BACKEND_URL 
+  ? `${import.meta.env.VITE_BACKEND_URL}/api/auth` 
+  : "/api/auth";
 
 // Dati sensibili → sessionStorage (spariscono alla chiusura del tab)
 export function saveToken(token) {
