@@ -21,6 +21,7 @@ Files are encrypted **in the browser** before upload and decrypted **in the brow
 - Java 25
 - Node.js >= 18
 - MySQL running on `localhost:3306`
+- `npm` available for frontend dependencies
 - A GitHub Codespace **or** local environment
 
 ---
@@ -33,7 +34,7 @@ Create the database before starting the backend:
 CREATE DATABASE secure_files;
 ```
 
-The schema is generated automatically by Hibernate (`ddl-auto=update`) on first run.
+The schema is generated automatically by Hibernate on first run via `spring.jpa.hibernate.ddl-auto=update`.
 
 ---
 
@@ -42,15 +43,20 @@ The schema is generated automatically by Hibernate (`ddl-auto=update`) on first 
 Navigate to the backend folder:
 
 ```bash
-cd Pirin
+cd Pirin/backend
 ```
 
-Configure `src/main/resources/application.properties`:
+Configure `src/main/resources/application.properties` before starting the server. Example values:
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/secure_files
 spring.datasource.username=root
 spring.datasource.password=root
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
 
 jwt.secret=your-secret-key-at-least-32-characters-long
 jwt.expiration-ms=86400000
@@ -59,7 +65,9 @@ storage.path=uploads
 app.frontend-url=http://localhost:5173
 ```
 
-> **GitHub Codespaces**: set `app.frontend-url` to your Codespace frontend URL (e.g. `https://<name>-5173.app.github.dev`) and make sure port 8080 is set to **Public** in the Ports tab.
+> **Important:** update `jwt.secret` before using this app in a real environment.
+
+The repository includes a development SMTP setup in `application.properties`. If SMTP is configured correctly, verification and reset emails are sent to the user's real email address.
 
 Run the backend:
 
@@ -69,6 +77,12 @@ Run the backend:
 
 The server starts on `http://localhost:8080`.
 
+If you need to build the backend first:
+
+```bash
+./gradlew clean build
+```
+
 ---
 
 ## 3. Frontend Setup
@@ -76,7 +90,7 @@ The server starts on `http://localhost:8080`.
 Navigate to the frontend folder:
 
 ```bash
-cd frontend
+cd Pirin/frontend
 ```
 
 Install dependencies:
@@ -85,18 +99,22 @@ Install dependencies:
 npm install
 ```
 
-Configure the backend URL in `vite.config.js`:
+The frontend proxy configuration is located in `vite.config.js`.
+By default, it points to the development backend URL used in Codespaces:
 
 ```js
 server: {
   proxy: {
     '/api': {
-      target: 'http://localhost:8080',  // or your Codespace backend URL
+      target: 'https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev',
       changeOrigin: true,
+      secure: false,
     },
   },
 },
 ```
+
+If you run locally, change the proxy target to `http://localhost:8080`.
 
 Run the frontend:
 
@@ -106,6 +124,13 @@ npm run dev
 
 The app is available at `http://localhost:5173`.
 
+For production preview:
+
+```bash
+npm run build
+npm run preview
+```
+
 ---
 
 ## 4. Project Structure
@@ -113,20 +138,27 @@ The app is available at `http://localhost:5173`.
 ```
 Pirin/
 ├── backend/
-│   └── src/main/java/com/pirin/
-│       ├── controller/       # REST endpoints
-│       ├── dto/              # Request/Response objects
-│       ├── entity/           # JPA entities (User, FileRecord, FolderRecord, ...)
-│       ├── repository/       # Spring Data repositories
-│       ├── security/         # JWT filter, Security config
-│       └── service/          # Business logic (Auth, JWT, FileStorage)
+│   ├── build.gradle
+│   ├── gradlew
+│   ├── settings.gradle
+│   ├── src/main/java/com/pirin/
+│   │   ├── controller/       # REST endpoints
+│   │   ├── dto/              # Request/Response objects
+│   │   ├── entity/           # JPA entities (User, FileRecord, FolderRecord, ...)
+│   │   ├── repository/       # Spring Data repositories
+│   │   ├── security/         # JWT filter, Security config
+│   │   └── service/          # Business logic (Auth, JWT, FileStorage)
+│   └── src/main/resources/  # application.properties, mail config, storage path
 │
 └── frontend/
+    ├── package.json
+    ├── vite.config.js
     └── src/
         ├── api/              # Fetch calls to backend (auth, files, folders, upload, download)
         ├── components/       # React components (Folders, Upload, NavBar, ...)
-        ├── crypto/           # Web Crypto API (key derivation, encrypt, decrypt)
-        └── hooks/            # useFolders hook
+        ├── crypto/           # Web Crypto API helpers (key derivation, encrypt, decrypt)
+        ├── hooks/            # useFolders hook
+        └── pages/            # top-level views like landing/login/dashboard
 ```
 
 ---
@@ -136,7 +168,7 @@ Pirin/
 - **Sign up / Login / Logout** with JWT authentication
 - **Email verification** — link printed to console in development
 - **Password reset** — link printed to console in development
-- **End-to-end encrypted file upload** — files encrypted in the browser with AES-GCM before leaving the device
+- **End-to-end encrypted file upload** — files encrypted in the browser with AES-GCM before upload
 - **Encrypted file download** — decrypted in the browser after download
 - **Rename / Delete files**
 - **Folder management** — create, rename, delete (with cascade), nested folders
@@ -170,14 +202,12 @@ In short:
 - Folder operations: create, rename, delete (cascade), nested, breadcrumb
 - Dark / Light mode
 - `SECURITY.md`
-
-### Partial
-- Email sending: flow exists, links printed to console — SMTP not configured with real credentials
-- Password reset: backend flow complete, frontend page missing
-- Upload progress feedback: not implemented
+- Email sending flow implemented; delivery depends on correct SMTP configuration
+- Password reset: backend and frontend flow implemented, including reset page and token handling
+- Upload progress feedback
 
 ### With more time
-- Real SMTP integration (e.g. SendGrid, Mailtrap)
+- Better email delivery integration (e.g. SendGrid, Mailtrap)
 - Upload progress bar
 - File preview (images, text) decrypted in-browser
 - File sharing between users
