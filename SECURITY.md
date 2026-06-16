@@ -120,4 +120,4 @@ Naively changing the password would change the KEK, making the encrypted DEK unr
 
 - **Single device** — the DEK is derived at login and lives in memory. A second device can log in and re-derive the DEK from the password, so multi-device access works as long as the user remembers their password.
 - **Password loss** — if the user forgets their password, all files are permanently unrecoverable. This is a deliberate consequence of real E2EE.
-- **Email verification** — in development, verification links are logged to the console instead of being sent via email. A real SMTP server must be configured for production.
+- **Email verification** — verification links are sent via SMTP using the configured mail settings. A real SMTP server must be configured for production.
