@@ -16,7 +16,7 @@ services:
 
   # 2. BACKEND NODE.JS
   backend:
-    build: ./backend
+    build: ../backend
     container_name: backend
     restart: always
     ports:
@@ -31,7 +31,7 @@ services:
 
   # 3. FRONTEND DISTRIBUITO CON NGINX
   frontend:
-    build: ./frontend
+    build: ../frontend
     container_name: frontend
     restart: always
     ports:
