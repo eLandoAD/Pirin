@@ -52,7 +52,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+    
+        // Invece di un URL fisso, permettiamo qualsiasi pattern proveniente da github.dev o localhost
+        config.setAllowedOriginPatterns(List.of(
+            "https://*.github.dev",
+            "https://*.app.github.dev",
+            "http://localhost:[*]"
+        )); 
+    
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

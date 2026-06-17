@@ -78,7 +78,7 @@ public class AuthService {
         token.setExpiresAt(LocalDateTime.now().plusHours(24));
         emailTokenRepository.save(token);
 
-        String verifyLink = frontendUrl + "/verify?token=" + token.getToken();
+        String verifyLink = frontendUrl + "/?token=" + token.getToken();
         sendEmail(user.getEmail(), "Verifica il tuo account SecureVault",
                 "Clicca il link per verificare il tuo account:\n\n" + verifyLink +
                         "\n\nIl link scade tra 24 ore.");
