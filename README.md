@@ -18,122 +18,35 @@ Files are encrypted **in the browser** before upload and decrypted **in the brow
 
 ## Prerequisites
 
-- Java 25
-- Node.js >= 18
-- MySQL running on `localhost:3306`
-- `npm` available for frontend dependencies
-- A GitHub Codespace **or** local environment
+- Docker
+- Docker Compose
+- A GitHub Codespace **or** local environment with Docker available
 
 ---
 
-## 1. Database Setup
+## Docker Startup
 
-Create the database before starting the backend:
-
-```sql
-CREATE DATABASE secure_files;
-```
-
-The schema is generated automatically by Hibernate on first run via `spring.jpa.hibernate.ddl-auto=update`.
-
----
-
-## 2. Backend Setup
-
-Navigate to the backend folder:
+From the repository root, start the full stack with:
 
 ```bash
-cd Pirin/backend
+docker compose -f .devcontainer/docker-compose.yml up -d
 ```
 
-Configure `src/main/resources/application.properties` before starting the server. Example values:
+This will start:
 
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/secure_files
-spring.datasource.username=root
-spring.datasource.password=root
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+- the MySQL database on port `3306`
+- the backend API on port `8080`
+- the frontend on port `5173`
 
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-
-jwt.secret=your-secret-key-at-least-32-characters-long
-jwt.expiration-ms=86400000
-
-storage.path=uploads
-app.frontend-url=http://localhost:5173
-```
-
-> **Important:** update `jwt.secret` before using this app in a real environment.
-
-The repository includes a development SMTP setup in `application.properties`. If SMTP is configured correctly, verification and reset emails are sent to the user's real email address.
-
-Run the backend:
+If you need to rebuild the images after changing the code, run:
 
 ```bash
-./gradlew bootRun
-```
-
-The server starts on `http://localhost:8080`.
-
-If you need to build the backend first:
-
-```bash
-./gradlew clean build
+docker compose -f .devcontainer/docker-compose.yml up -d --build
 ```
 
 ---
 
-## 3. Frontend Setup
-
-Navigate to the frontend folder:
-
-```bash
-cd Pirin/frontend
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-The frontend proxy configuration is located in `vite.config.js`.
-By default, it points to the development backend URL used in Codespaces:
-
-```js
-server: {
-  proxy: {
-    '/api': {
-      target: 'https://crispy-potato-qv76gg55rgxxc99r5-8080.app.github.dev',
-      changeOrigin: true,
-      secure: false,
-    },
-  },
-},
-```
-
-If you run locally, change the proxy target to `http://localhost:8080`.
-
-Run the frontend:
-
-```bash
-npm run dev
-```
-
-The app is available at `http://localhost:5173`.
-
-For production preview:
-
-```bash
-npm run build
-npm run preview
-```
-
----
-
-## 4. Project Structure
+## 1. Project Structure
 
 ```
 Pirin/
