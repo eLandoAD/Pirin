@@ -44,6 +44,12 @@ If you need to rebuild the images after changing the code, run:
 docker compose -f .devcontainer/docker-compose.yml up -d --build
 ```
 
+To stop the containers when you are done, run:
+
+```bash
+docker compose -f .devcontainer/docker-compose.yml down
+```
+
 ---
 
 ## 1. Project Structure
