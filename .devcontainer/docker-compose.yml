@@ -1,6 +1,7 @@
 version: "3.8"
 
 services:
+  # 1. DATABASE MYSQL
   db:
     image: mysql:8
     container_name: db
@@ -10,3 +11,33 @@ services:
       MYSQL_DATABASE: secure_files
     ports:
       - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # 2. BACKEND NODE.JS
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=secure_files
+    depends_on:
+      - db
+
+  # 3. FRONTEND DISTRIBUITO CON NGINX
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "5173:80" # Mappa la porta 80 di Nginx sulla porta 5173 del tuo PC
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
