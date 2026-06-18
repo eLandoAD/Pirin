@@ -19,35 +19,64 @@ Files are encrypted **in the browser** before upload and decrypted **in the brow
 ## Prerequisites
 
 - Docker
-- Docker Compose
+- Minikube
+- kubectl
 - A GitHub Codespace **or** local environment with Docker available
 
 ---
 
-## Docker Startup
+## Minikube Startup
 
-From the repository root, start the full stack with:
+From the repository root, run:
 
 ```bash
-docker compose -f .devcontainer/docker-compose.yml up -d
+minikube start
 ```
 
-This will start:
-
-- the MySQL database on port `3306`
-- the backend API on port `8080`
-- the frontend on port `5173`
-
-If you need to rebuild the images after changing the code, run:
+Make the local Docker images available to the Minikube Docker daemon:
 
 ```bash
-docker compose -f .devcontainer/docker-compose.yml up -d --build
+eval $(minikube docker-env)
 ```
 
-To stop the containers when you are done, run:
+Build the images used by the Kubernetes manifest:
 
 ```bash
-docker compose -f .devcontainer/docker-compose.yml down
+docker build -t securevault-backend:latest ./backend
+docker build -t securevault-frontend:latest ./frontend
+```
+
+Deploy the application to the cluster:
+
+```bash
+kubectl apply -f k8s.yaml
+```
+
+Check that the pods are running:
+
+```bash
+kubectl get pods
+```
+
+When the frontend is ready, expose it with:
+
+```bash
+minikube service frontend --url
+```
+
+This will give you the URL to access the web app.
+
+If you need to rebuild the images after changing the code, run the same build commands again and then:
+
+```bash
+kubectl rollout restart deployment/backend
+kubectl rollout restart deployment/frontend
+```
+
+To stop the cluster when you are done, run:
+
+```bash
+minikube stop
 ```
 
 ---
