@@ -27,7 +27,7 @@ Files are encrypted **in the browser** before upload and decrypted **in the brow
 
 ## Minikube Startup
 
-From the repository root, run:
+From the repository root, start the cluster:
 
 ```bash
 minikube start
@@ -39,7 +39,7 @@ Make the local Docker images available to the Minikube Docker daemon:
 eval $(minikube docker-env)
 ```
 
-Build the images used by the Kubernetes manifest:
+Build the Docker images used by the Kubernetes deployment:
 
 ```bash
 docker build -t securevault-backend:latest ./backend
@@ -58,15 +58,27 @@ Check that the pods are running:
 kubectl get pods
 ```
 
-When the frontend is ready, expose it with:
+If you are running this inside a Codespace, use port-forwarding to access the frontend locally:
+
+```bash
+kubectl port-forward service/frontend 8080:80
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8080
+```
+
+If you prefer the Minikube URL flow instead, you can also run:
 
 ```bash
 minikube service frontend --url
 ```
 
-This will give you the URL to access the web app.
+This may be useful on a local machine, but in a Codespace the `kubectl port-forward` method is usually the most reliable.
 
-If you need to rebuild the images after changing the code, run the same build commands again and then:
+If you need to rebuild the images after changing the code, run the same build commands again and then restart the deployments:
 
 ```bash
 kubectl rollout restart deployment/backend
